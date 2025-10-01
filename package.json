@@ -1,0 +1,32 @@
+{
+  "name": "dhiraj-pandit-portfolio",
+  "version": "1.0.0",
+  "description": "Modern futuristic portfolio website for Dhiraj Pandit",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "start": "cd backend && npm start",
+    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install",
+    "setup": "cd backend && npm run setup",
+    "setup:admin": "cd backend && npm run setup:admin",
+    "seed": "cd backend && npm run seed"
+  },
+  "keywords": [
+    "portfolio",
+    "react",
+    "gsap",
+    "threejs",
+    "express"
+  ],
+  "author": "Dhiraj Pandit",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "multer": "^2.0.2"
+  }
+}
