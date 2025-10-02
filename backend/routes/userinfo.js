@@ -9,6 +9,18 @@ router.get('/', async (req, res) => {
     const user = await prisma.user.findFirst({
       where: {
         email: 'dhiraj.pandit@adypu.edu.in'
+      },
+      include: {
+        userSkills: {
+          include: {
+            skill: true
+          },
+          orderBy: {
+            skill: {
+              name: 'asc'
+            }
+          }
+        }
       }
     });
 
@@ -44,7 +56,21 @@ router.get('/', async (req, res) => {
       return res.json(defaultUser);
     }
 
-    res.json(user);
+    // Transform user skills to include skill details
+    const userWithSkills = {
+      ...user,
+      skillsWithLogos: user.userSkills.map(us => ({
+        id: us.id,
+        name: us.skill.name,
+        logoUrl: us.skill.logoUrl,
+        logoSvg: us.skill.logoSvg,
+        category: us.skill.category,
+        level: us.level,
+        skillId: us.skillId
+      }))
+    };
+
+    res.json(userWithSkills);
   } catch (error) {
     console.error('Error fetching user info:', error);
     res.status(500).json({ error: 'Failed to fetch user information' });

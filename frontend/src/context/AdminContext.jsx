@@ -22,6 +22,8 @@ const initialState = {
   certificates: [],
   contacts: [],
   userInfo: null,
+  skills: [],
+  userSkills: [],
   stats: {
     projects: 0,
     certificates: 0,
@@ -41,6 +43,9 @@ const ActionTypes = {
   SET_CONTACTS: 'SET_CONTACTS',
   SET_USER_INFO: 'SET_USER_INFO',
   SET_STATS: 'SET_STATS',
+  SET_SKILLS: 'SET_SKILLS',
+  SET_USER_SKILLS: 'SET_USER_SKILLS',
+  ADD_SKILL: 'ADD_SKILL',
   ADD_PROJECT: 'ADD_PROJECT',
   UPDATE_PROJECT: 'UPDATE_PROJECT',
   DELETE_PROJECT: 'DELETE_PROJECT',
@@ -84,6 +89,12 @@ function adminReducer(state, action) {
       return { ...state, userInfo: action.payload, isLoading: false };
     case ActionTypes.SET_STATS:
       return { ...state, stats: action.payload, isLoading: false };
+    case ActionTypes.SET_SKILLS:
+      return { ...state, skills: action.payload, isLoading: false };
+    case ActionTypes.SET_USER_SKILLS:
+      return { ...state, userSkills: action.payload, isLoading: false };
+    case ActionTypes.ADD_SKILL:
+      return { ...state, skills: [...state.skills, action.payload] };
     case ActionTypes.ADD_PROJECT:
       return { ...state, projects: [...state.projects, action.payload] };
     case ActionTypes.UPDATE_PROJECT:
@@ -198,12 +209,13 @@ export function AdminProvider({ children }) {
   // Fetch dashboard data
   const fetchDashboardData = async () => {
     try {
-      const [statsRes, projectsRes, certificatesRes, contactsRes, userInfoRes] = await Promise.all([
+      const [statsRes, projectsRes, certificatesRes, contactsRes, userInfoRes, skillsRes] = await Promise.all([
         api.get('/admin/dashboard'),
         api.get('/projects'),
         api.get('/certificates'),
         api.get('/contact'),
-        api.get('/userinfo')
+        api.get('/userinfo'),
+        api.get('/skills')
       ]);
 
       dispatch({ type: ActionTypes.SET_STATS, payload: statsRes.data.stats });
@@ -211,6 +223,13 @@ export function AdminProvider({ children }) {
       dispatch({ type: ActionTypes.SET_CERTIFICATES, payload: certificatesRes.data });
       dispatch({ type: ActionTypes.SET_CONTACTS, payload: contactsRes.data });
       dispatch({ type: ActionTypes.SET_USER_INFO, payload: userInfoRes.data });
+      dispatch({ type: ActionTypes.SET_SKILLS, payload: skillsRes.data });
+      
+      // Fetch user skills if user exists
+      if (userInfoRes.data?.id) {
+        const userSkillsRes = await api.get(`/skills/user/${userInfoRes.data.id}`);
+        dispatch({ type: ActionTypes.SET_USER_SKILLS, payload: userSkillsRes.data });
+      }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       dispatch({ type: ActionTypes.SET_ERROR, payload: 'Failed to load dashboard data' });
@@ -306,6 +325,47 @@ export function AdminProvider({ children }) {
     }
   };
 
+  // Skills management
+  const createSkill = async (skillData) => {
+    try {
+      const response = await api.post('/skills', skillData);
+      dispatch({ type: ActionTypes.ADD_SKILL, payload: response.data });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.error || 'Failed to create skill' };
+    }
+  };
+
+  const updateUserSkills = async (userId, skillIds) => {
+    try {
+      const response = await api.post(`/skills/user/${userId}`, { skillIds });
+      dispatch({ type: ActionTypes.SET_USER_SKILLS, payload: response.data });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.error || 'Failed to update user skills' };
+    }
+  };
+
+  const fetchSkills = async () => {
+    try {
+      const response = await api.get('/skills');
+      dispatch({ type: ActionTypes.SET_SKILLS, payload: response.data });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.error || 'Failed to fetch skills' };
+    }
+  };
+
+  const fetchUserSkills = async (userId) => {
+    try {
+      const response = await api.get(`/skills/user/${userId}`);
+      dispatch({ type: ActionTypes.SET_USER_SKILLS, payload: response.data });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.error || 'Failed to fetch user skills' };
+    }
+  };
+
   const value = {
     ...state,
     login,
@@ -318,7 +378,11 @@ export function AdminProvider({ children }) {
     updateCertificate,
     deleteCertificate,
     updateUserInfo,
-    markContactAsRead
+    markContactAsRead,
+    createSkill,
+    updateUserSkills,
+    fetchSkills,
+    fetchUserSkills
   };
 
   return (

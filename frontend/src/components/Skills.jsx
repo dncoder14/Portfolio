@@ -11,7 +11,8 @@ const Skills = () => {
   const skillsRef = useRef()
   const { userInfo } = useApp()
 
-  const skills = userInfo?.skills || [
+  // Use new skills with logos if available, fallback to old format
+  const skills = userInfo?.skillsWithLogos || userInfo?.skills || [
     { name: 'React', icon: '⚛️', level: 90 },
     { name: 'JavaScript', icon: '🟨', level: 95 },
     { name: 'Node.js', icon: '🟢', level: 85 },
@@ -118,9 +119,30 @@ const Skills = () => {
               key={index}
               className="group relative bg-gray-800 rounded-lg p-6 text-center hover:bg-gray-700 transition-all duration-300 cursor-pointer"
             >
-              {/* Skill Icon */}
-              <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">
-                {skill.icon}
+              {/* Skill Icon/Logo */}
+              <div className="mb-4 group-hover:scale-110 transition-transform duration-300 flex justify-center">
+                {skill.logoSvg ? (
+                  <span
+                    className="w-12 h-12"
+                    dangerouslySetInnerHTML={{ __html: skill.logoSvg }}
+                  />
+                ) : skill.logoUrl ? (
+                  <img 
+                    src={skill.logoUrl} 
+                    alt={skill.name}
+                    className="w-12 h-12 object-contain"
+                    onError={(e) => {
+                      e.target.style.display = 'none'
+                      e.target.nextSibling.style.display = 'block'
+                    }}
+                  />
+                ) : null}
+                <div 
+                  className={`text-4xl ${(skill.logoSvg || skill.logoUrl) ? 'hidden' : 'block'}`}
+                  style={{ display: (skill.logoSvg || skill.logoUrl) ? 'none' : 'block' }}
+                >
+                  {skill.icon || '🔧'}
+                </div>
               </div>
 
               {/* Skill Name */}

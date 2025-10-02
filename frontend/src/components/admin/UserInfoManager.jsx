@@ -2,9 +2,19 @@ import React, { useEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
 import { useAdmin } from '../../context/AdminContext'
 import toast from 'react-hot-toast'
+import MultiSelectSkills from './MultiSelectSkills'
 
 const UserInfoManager = () => {
-  const { userInfo, updateUserInfo } = useAdmin()
+  const { 
+    userInfo, 
+    updateUserInfo, 
+    skills, 
+    userSkills, 
+    createSkill, 
+    updateUserSkills, 
+    fetchSkills, 
+    fetchUserSkills 
+  } = useAdmin()
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -19,7 +29,7 @@ const UserInfoManager = () => {
     },
     skills: []
   })
-  const [newSkill, setNewSkill] = useState({ name: '', icon: '', level: 50 })
+  const [selectedSkills, setSelectedSkills] = useState([])
   const [isEditing, setIsEditing] = useState(false)
   const formRef = useRef()
 
@@ -42,6 +52,32 @@ const UserInfoManager = () => {
     }
   }, [userInfo])
 
+  // Set selected skills from userSkills
+  useEffect(() => {
+    if (userSkills && Array.isArray(userSkills)) {
+      const skillsWithDetails = userSkills.map(us => ({
+        skillId: us.skillId,
+        level: us.level,
+        skill: {
+          id: us.skillId,
+          name: us.name,
+          logoUrl: us.logoUrl,
+          logoSvg: us.logoSvg,
+          category: us.category
+        }
+      }))
+      setSelectedSkills(skillsWithDetails)
+    }
+  }, [userSkills])
+
+  // Fetch skills on component mount
+  useEffect(() => {
+    fetchSkills()
+    if (userInfo?.id) {
+      fetchUserSkills(userInfo.id)
+    }
+  }, [userInfo?.id])
+
   useEffect(() => {
     const tl = gsap.timeline()
 
@@ -63,10 +99,27 @@ const UserInfoManager = () => {
     e.preventDefault()
     
     try {
+      // Update basic user info
       const result = await updateUserInfo(formData)
       if (result.success) {
-        toast.success('User information updated successfully!')
-        setIsEditing(false)
+        // Update user skills
+        const skillIds = selectedSkills.map(s => ({
+          skillId: s.skillId,
+          level: s.level
+        }))
+        
+        if (userInfo?.id) {
+          const skillsResult = await updateUserSkills(userInfo.id, skillIds)
+          if (skillsResult.success) {
+            toast.success('User information and skills updated successfully!')
+            setIsEditing(false)
+          } else {
+            toast.error(skillsResult.error)
+          }
+        } else {
+          toast.success('User information updated successfully!')
+          setIsEditing(false)
+        }
       } else {
         toast.error(result.error)
       }
@@ -85,27 +138,26 @@ const UserInfoManager = () => {
     })
   }
 
-  const addSkill = () => {
-    if (newSkill.name.trim()) {
-      setFormData({
-        ...formData,
-        skills: [...formData.skills, { ...newSkill, name: newSkill.name.trim() }]
-      })
-      setNewSkill({ name: '', icon: '', level: 50 })
+  const handleSkillSelectionChange = (newSelection) => {
+    setSelectedSkills(newSelection)
+  }
+
+  const handleAddNewSkill = async (skillData) => {
+    try {
+      const result = await createSkill(skillData)
+      if (result.success) {
+        toast.success('New skill added successfully!')
+        // Refresh skills list
+        await fetchSkills()
+        return result.data
+      } else {
+        toast.error(result.error)
+        throw new Error(result.error)
+      }
+    } catch (error) {
+      toast.error('Failed to add new skill')
+      throw error
     }
-  }
-
-  const removeSkill = (index) => {
-    setFormData({
-      ...formData,
-      skills: formData.skills.filter((_, i) => i !== index)
-    })
-  }
-
-  const updateSkill = (index, field, value) => {
-    const updatedSkills = [...formData.skills]
-    updatedSkills[index] = { ...updatedSkills[index], [field]: value }
-    setFormData({ ...formData, skills: updatedSkills })
   }
 
   return (
@@ -253,123 +305,58 @@ const UserInfoManager = () => {
 
           {/* Skills */}
           <div>
-            <h3 className="text-lg font-semibold text-white mb-4">Skills</h3>
+            <h3 className="text-lg font-semibold text-white mb-4">Skills Management</h3>
             
-            {/* Add New Skill */}
-            {isEditing && (
-              <div className="bg-gray-700 rounded p-4 mb-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Skill Name
-                    </label>
-                    <input
-                      type="text"
-                      value={newSkill.name}
-                      onChange={(e) => setNewSkill({ ...newSkill, name: e.target.value })}
-                      placeholder="e.g., React"
-                      className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded text-white focus:outline-none focus:border-green-400"
-                    />
+            {isEditing ? (
+              <MultiSelectSkills
+                availableSkills={skills || []}
+                selectedSkills={selectedSkills}
+                onSelectionChange={handleSkillSelectionChange}
+                onAddNewSkill={handleAddNewSkill}
+                disabled={false}
+              />
+            ) : (
+              <div className="space-y-3">
+                {selectedSkills.length > 0 ? (
+                  selectedSkills.map((selectedSkill, index) => (
+                    <div key={index} className="bg-gray-700 rounded-lg p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          {selectedSkill.skill?.logoSvg ? (
+                            <span
+                              className="w-8 h-8"
+                              dangerouslySetInnerHTML={{ __html: selectedSkill.skill.logoSvg }}
+                            />
+                          ) : (
+                            <img 
+                              src={selectedSkill.skill?.logoUrl} 
+                              alt={selectedSkill.skill?.name}
+                              className="w-8 h-8 object-contain"
+                              onError={(e) => {
+                                e.target.style.display = 'none'
+                              }}
+                            />
+                          )}
+                          <div>
+                            <span className="text-white font-medium">{selectedSkill.skill?.name}</span>
+                            <div className="text-xs text-gray-400 bg-gray-600 px-2 py-1 rounded inline-block ml-2">
+                              {selectedSkill.skill?.category}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-sm text-gray-300">
+                          Level: {selectedSkill.level}%
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-gray-400 text-center py-8">
+                    No skills selected. Click "Edit" to add skills.
                   </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Icon
-                    </label>
-                    <input
-                      type="text"
-                      value={newSkill.icon}
-                      onChange={(e) => setNewSkill({ ...newSkill, icon: e.target.value })}
-                      placeholder="e.g., ⚛️"
-                      className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded text-white focus:outline-none focus:border-green-400"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Level (%)
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      max="100"
-                      value={newSkill.level}
-                      onChange={(e) => setNewSkill({ ...newSkill, level: parseInt(e.target.value) })}
-                      className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded text-white focus:outline-none focus:border-green-400"
-                    />
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={addSkill}
-                  className="px-4 py-2 bg-green-400 hover:bg-green-500 text-black font-semibold rounded transition-colors duration-300"
-                >
-                  Add Skill
-                </button>
+                )}
               </div>
             )}
-
-            {/* Skills List */}
-            <div className="space-y-3">
-              {formData.skills.map((skill, index) => (
-                <div key={index} className="bg-gray-700 rounded p-4">
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-1">
-                        Name
-                      </label>
-                      <input
-                        type="text"
-                        value={skill.name}
-                        onChange={(e) => updateSkill(index, 'name', e.target.value)}
-                        disabled={!isEditing}
-                        className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded text-white focus:outline-none focus:border-green-400 disabled:bg-gray-500 disabled:cursor-not-allowed"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-1">
-                        Icon
-                      </label>
-                      <input
-                        type="text"
-                        value={skill.icon}
-                        onChange={(e) => updateSkill(index, 'icon', e.target.value)}
-                        disabled={!isEditing}
-                        className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded text-white focus:outline-none focus:border-green-400 disabled:bg-gray-500 disabled:cursor-not-allowed"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-1">
-                        Level (%)
-                      </label>
-                      <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={skill.level}
-                        onChange={(e) => updateSkill(index, 'level', parseInt(e.target.value))}
-                        disabled={!isEditing}
-                        className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded text-white focus:outline-none focus:border-green-400 disabled:bg-gray-500 disabled:cursor-not-allowed"
-                      />
-                    </div>
-
-                    <div className="flex items-end">
-                      {isEditing && (
-                        <button
-                          type="button"
-                          onClick={() => removeSkill(index)}
-                          className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded transition-colors duration-300"
-                        >
-                          Remove
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
 
           {isEditing && (

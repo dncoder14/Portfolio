@@ -18,9 +18,12 @@ model User {
   location    String?
   profileImage String?
   socialLinks Json?    // Store social links as JSON
-  skills      Json?    // Store skills array as JSON
+  skills      Json?    // Store skills array as JSON (deprecated, use userSkills relation)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  // Relations
+  userSkills UserSkill[]
 
   @@map("users")
 }
@@ -62,6 +65,36 @@ model Contact {
   createdAt DateTime @default(now())
 
   @@map("contacts")
+}
+
+model Skill {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  logoUrl   String?
+  logoSvg   String? @db.LongText  // Raw SVG markup stored as long text
+  category  String?  // e.g., "Frontend", "Backend", "Database", "DevOps"
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relation to user skills
+  userSkills UserSkill[]
+
+  @@map("skills")
+}
+
+model UserSkill {
+  id      String @id @default(cuid())
+  userId  String
+  skillId String
+  level   Int    @default(50) // Proficiency level 0-100
+
+  // Relations
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, skillId])
+  @@map("user_skills")
 }
 
 model Admin {

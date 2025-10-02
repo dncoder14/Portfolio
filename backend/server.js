@@ -34,6 +34,7 @@ app.use('/api/userinfo', require('./routes/userinfo'));
 app.use('/api/projects', require('./routes/projects'));
 app.use('/api/certificates', require('./routes/certificates'));
 app.use('/api/contact', require('./routes/contact'));
+app.use('/api/skills', require('./routes/skills'));
 app.use('/api/admin', require('./routes/admin'));
 
 // Health check
