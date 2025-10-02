@@ -65,7 +65,6 @@ router.get('/', async (req, res) => {
         logoUrl: us.skill.logoUrl,
         logoSvg: us.skill.logoSvg,
         category: us.skill.category,
-        level: us.level,
         skillId: us.skillId
       }))
     };

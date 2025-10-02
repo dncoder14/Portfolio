@@ -5,7 +5,7 @@ const popularSkills = [
   // Frontend Technologies
   {
     name: 'React',
-    logoSvg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256"><g fill="none"><circle cx="128" cy="128" r="24" fill="#61DAFB"/><g stroke="#61DAFB" stroke-width="16"><ellipse rx="28" ry="80" transform="matrix(.8660254 .5 -.5 .8660254 128 128)"/><ellipse rx="28" ry="80" transform="matrix(-.8660254 .5 -.5 -.8660254 128 128)"/><ellipse rx="28" ry="80" transform="matrix(0 1 -1 0 128 128)"/></g></g></svg>',
+    logoUrl: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg',
     category: 'Frontend'
   },
   {
@@ -40,7 +40,7 @@ const popularSkills = [
   },
   {
     name: 'Tailwind CSS',
-    logoUrl: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tailwindcss/tailwindcss-plain.svg',
+    logoSvg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><path fill="#06B6D4" fill-rule="evenodd" d="M12 6c-2.67 0-4.33 1.33-5 4 1-1.33 2.17-1.83 3.5-1.5.76.19 1.31.74 1.91 1.35.98 1 2.09 2.15 4.59 2.15 2.67 0 4.33-1.33 5-4-1 1.33-2.17 1.83-3.5 1.5-.76-.19-1.31-.74-1.91-1.35C15.61 7.15 14.5 6 12 6zM7 12c-2.67 0-4.33 1.33-5 4 1-1.33 2.17-1.83 3.5-1.5.76.19 1.31.74 1.91 1.35.98 1 2.09 2.15 4.59 2.15 2.67 0 4.33-1.33 5-4-1 1.33-2.17 1.83-3.5 1.5-.76-.19-1.31-.74-1.91-1.35C10.61 13.15 9.5 12 7 12z" clip-rule="evenodd"/></svg>',
     category: 'Frontend'
   },
   {

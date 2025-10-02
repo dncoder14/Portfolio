@@ -150,14 +150,7 @@ const Skills = () => {
                 {skill.name}
               </h3>
 
-              {/* Skill Level */}
-              <div className="w-full bg-gray-700 rounded-full h-2 mb-2">
-                <div 
-                  className="bg-gradient-to-r from-green-400 to-green-600 h-2 rounded-full transition-all duration-1000 ease-out"
-                  style={{ width: `${skill.level}%` }}
-                />
-              </div>
-              <span className="text-sm text-gray-400">{skill.level}%</span>
+              {/* No proficiency display anymore */}
 
               {/* Hover Effect */}
               <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-green-400/10 to-green-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />

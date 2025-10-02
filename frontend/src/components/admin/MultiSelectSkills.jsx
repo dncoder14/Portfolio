@@ -42,20 +42,13 @@ const MultiSelectSkills = ({
   }, [])
 
   const handleSkillSelect = (skill) => {
-    const newSelection = [...selectedSkills, { skillId: skill.id, level: 50, skill }]
+    const newSelection = [...selectedSkills, { skillId: skill.id, skill }]
     onSelectionChange(newSelection)
     setSearchTerm('')
   }
 
   const handleSkillRemove = (skillId) => {
     const newSelection = selectedSkills.filter(s => s.skillId !== skillId)
-    onSelectionChange(newSelection)
-  }
-
-  const handleLevelChange = (skillId, level) => {
-    const newSelection = selectedSkills.map(s =>
-      s.skillId === skillId ? { ...s, level: parseInt(level) } : s
-    )
     onSelectionChange(newSelection)
   }
 
@@ -114,19 +107,6 @@ const MultiSelectSkills = ({
                   >
                     <XMarkIcon className="w-5 h-5" />
                   </button>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <label className="text-sm text-gray-300">Level:</label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={selectedSkill.level}
-                    onChange={(e) => handleLevelChange(selectedSkill.skillId, e.target.value)}
-                    disabled={disabled}
-                    className="flex-1 h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer disabled:cursor-not-allowed"
-                  />
-                  <span className="text-sm text-gray-300 w-12">{selectedSkill.level}%</span>
                 </div>
               </div>
             ))}
@@ -207,7 +187,7 @@ const MultiSelectSkills = ({
                       onChange={(e) => setNewSkillData({ ...newSkillData, category: e.target.value })}
                       className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white text-sm focus:outline-none focus:border-green-400"
                     >
-                      {categories.map(category => (
+                      {['Frontend','Backend','Database','DevOps','Cloud','Tools','Design','Testing','Other'].map(category => (
                         <option key={category} value={category}>{category}</option>
                       ))}
                     </select>

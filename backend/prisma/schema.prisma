@@ -87,7 +87,6 @@ model UserSkill {
   id      String @id @default(cuid())
   userId  String
   skillId String
-  level   Int    @default(50) // Proficiency level 0-100
 
   // Relations
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)

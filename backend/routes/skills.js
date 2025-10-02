@@ -168,7 +168,6 @@ router.get('/user/:userId', async (req, res) => {
       logoUrl: us.skill.logoUrl,
       logoSvg: us.skill.logoSvg,
       category: us.skill.category,
-      level: us.level,
       skillId: us.skillId
     }));
 
@@ -183,7 +182,7 @@ router.get('/user/:userId', async (req, res) => {
 router.post('/user/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    const { skillIds } = req.body; // Array of { skillId, level }
+    const { skillIds } = req.body; // Array of skillId strings OR objects with skillId
 
     if (!Array.isArray(skillIds)) {
       return res.status(400).json({ error: 'skillIds must be an array' });
@@ -195,17 +194,12 @@ router.post('/user/:userId', async (req, res) => {
     });
 
     // Add new user skills
+    const normalized = skillIds.map((s) => (typeof s === 'string' ? { skillId: s } : { skillId: s.skillId }));
     const userSkills = await Promise.all(
-      skillIds.map(({ skillId, level = 50 }) =>
+      normalized.map(({ skillId }) =>
         prisma.userSkill.create({
-          data: {
-            userId,
-            skillId,
-            level: Math.max(0, Math.min(100, level)) // Ensure level is between 0-100
-          },
-          include: {
-            skill: true
-          }
+          data: { userId, skillId },
+          include: { skill: true }
         })
       )
     );
@@ -216,7 +210,6 @@ router.post('/user/:userId', async (req, res) => {
       logoUrl: us.skill.logoUrl,
       logoSvg: us.skill.logoSvg,
       category: us.skill.category,
-      level: us.level,
       skillId: us.skillId
     }));
 
@@ -228,45 +221,7 @@ router.post('/user/:userId', async (req, res) => {
 });
 
 // PUT /api/skills/user/:userId/:userSkillId - Update user skill level
-router.put('/user/:userId/:userSkillId', async (req, res) => {
-  try {
-    const { userId, userSkillId } = req.params;
-    const { level } = req.body;
-
-    if (typeof level !== 'number' || level < 0 || level > 100) {
-      return res.status(400).json({ error: 'Level must be a number between 0 and 100' });
-    }
-
-    const userSkill = await prisma.userSkill.update({
-      where: {
-        id: userSkillId,
-        userId // Ensure the skill belongs to the user
-      },
-      data: { level },
-      include: {
-        skill: true
-      }
-    });
-
-    const skillWithDetails = {
-      id: userSkill.id,
-      name: userSkill.skill.name,
-      logoUrl: userSkill.skill.logoUrl,
-      logoSvg: userSkill.skill.logoSvg,
-      category: userSkill.skill.category,
-      level: userSkill.level,
-      skillId: userSkill.skillId
-    };
-
-    res.json(skillWithDetails);
-  } catch (error) {
-    console.error('Error updating user skill level:', error);
-    if (error.code === 'P2025') {
-      return res.status(404).json({ error: 'User skill not found' });
-    }
-    res.status(500).json({ error: 'Failed to update user skill level' });
-  }
-});
+// Removed level update route as proficiency level is no longer used
 
 // DELETE /api/skills/user/:userId/:userSkillId - Remove skill from user
 router.delete('/user/:userId/:userSkillId', async (req, res) => {

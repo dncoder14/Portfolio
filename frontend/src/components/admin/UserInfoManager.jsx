@@ -57,7 +57,6 @@ const UserInfoManager = () => {
     if (userSkills && Array.isArray(userSkills)) {
       const skillsWithDetails = userSkills.map(us => ({
         skillId: us.skillId,
-        level: us.level,
         skill: {
           id: us.skillId,
           name: us.name,
@@ -103,10 +102,7 @@ const UserInfoManager = () => {
       const result = await updateUserInfo(formData)
       if (result.success) {
         // Update user skills
-        const skillIds = selectedSkills.map(s => ({
-          skillId: s.skillId,
-          level: s.level
-        }))
+        const skillIds = selectedSkills.map(s => s.skillId)
         
         if (userInfo?.id) {
           const skillsResult = await updateUserSkills(userInfo.id, skillIds)
@@ -344,9 +340,7 @@ const UserInfoManager = () => {
                             </div>
                           </div>
                         </div>
-                        <div className="text-sm text-gray-300">
-                          Level: {selectedSkill.level}%
-                        </div>
+                        <div />
                       </div>
                     </div>
                   ))
