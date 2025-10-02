@@ -10,17 +10,19 @@ const prisma = new PrismaClient();
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
+    fileSize: 10 * 1024 * 1024 // 10MB limit for both images and PDFs
   },
   fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png|gif|webp/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
+    const allowedImageTypes = /jpeg|jpg|png|gif|webp/;
+    const allowedPdfTypes = /pdf/;
+    const extname = path.extname(file.originalname).toLowerCase();
+    const mimetype = file.mimetype;
     
-    if (mimetype && extname) {
+    if ((allowedImageTypes.test(extname) && allowedImageTypes.test(mimetype)) ||
+        (allowedPdfTypes.test(extname) && allowedPdfTypes.test(mimetype))) {
       return cb(null, true);
     } else {
-      cb(new Error('Only image files are allowed!'));
+      cb(new Error('Only image files (JPG, PNG, GIF, WebP) and PDF files are allowed!'));
     }
   }
 });
@@ -138,10 +140,55 @@ router.post('/upload', upload.single('profileImage'), async (req, res) => {
   }
 });
 
+// POST /api/userinfo/upload-cv - Upload CV
+router.post('/upload-cv', upload.single('cvFile'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    // Check if it's a PDF file
+    if (req.file.mimetype !== 'application/pdf') {
+      return res.status(400).json({ error: 'Only PDF files are allowed for CV upload' });
+    }
+
+    // Write CV directly to frontend public directory
+    const frontendPublicDir = path.join(__dirname, '../../frontend/public/files');
+    if (!fs.existsSync(frontendPublicDir)) {
+      fs.mkdirSync(frontendPublicDir, { recursive: true });
+    }
+    
+    const frontendCvPath = path.join(frontendPublicDir, 'cv.pdf');
+    fs.writeFileSync(frontendCvPath, req.file.buffer);
+    
+    // Use relative URL that will be served from frontend
+    const cvUrl = '/files/cv.pdf';
+    
+    // Update user with new CV
+    const updatedUser = await prisma.user.updateMany({
+      where: {
+        email: 'dhiraj.pandit@adypu.edu.in'
+      },
+      data: {
+        cvUrl: cvUrl
+      }
+    });
+
+    res.json({ 
+      message: 'CV uploaded successfully', 
+      cvUrl,
+      updatedUser 
+    });
+  } catch (error) {
+    console.error('Error uploading CV:', error);
+    res.status(500).json({ error: 'Failed to upload CV' });
+  }
+});
+
 // PUT /api/userinfo - Update user information
 router.put('/', async (req, res) => {
   try {
-    const { name, summary, location, profileImage, socialLinks, skills } = req.body;
+    const { name, summary, location, profileImage, cvUrl, socialLinks, skills } = req.body;
     
     const updatedUser = await prisma.user.updateMany({
       where: {
@@ -152,6 +199,7 @@ router.put('/', async (req, res) => {
         summary,
         location,
         profileImage,
+        cvUrl,
         socialLinks,
         skills
       }

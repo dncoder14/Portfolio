@@ -17,6 +17,7 @@ model User {
   summary     String?
   location    String?
   profileImage String?
+  cvUrl       String?  // Store CV file path
   socialLinks Json?    // Store social links as JSON
   skills      Json?    // Store skills array as JSON (deprecated, use userSkills relation)
   createdAt   DateTime @default(now())

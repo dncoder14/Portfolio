@@ -390,6 +390,30 @@ export function AdminProvider({ children }) {
     }
   };
 
+  // Upload CV
+  const uploadCV = async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append('cvFile', file);
+      
+      const response = await api.post('/userinfo/upload-cv', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      
+      // Update user info with new CV URL
+      dispatch({ 
+        type: ActionTypes.UPDATE_USER_INFO, 
+        payload: { ...state.userInfo, cvUrl: response.data.cvUrl }
+      });
+      
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.error || 'Failed to upload CV' };
+    }
+  };
+
   const value = {
     ...state,
     login,
@@ -407,7 +431,8 @@ export function AdminProvider({ children }) {
     updateUserSkills,
     fetchSkills,
     fetchUserSkills,
-    uploadProfileImage
+    uploadProfileImage,
+    uploadCV
   };
 
   return (

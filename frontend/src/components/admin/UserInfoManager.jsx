@@ -14,7 +14,8 @@ const UserInfoManager = () => {
     updateUserSkills, 
     fetchSkills, 
     fetchUserSkills,
-    uploadProfileImage 
+    uploadProfileImage,
+    uploadCV 
   } = useAdmin()
   const [formData, setFormData] = useState({
     name: '',
@@ -22,11 +23,13 @@ const UserInfoManager = () => {
     summary: '',
     location: '',
     profileImage: '',
+    cvUrl: '',
     socialLinks: {
-      linkedin: '',
+      codeforces: '',
+      codechef: '',
       github: '',
-      twitter: '',
-      email: ''
+      linkedin: '',
+      leetcode: ''
     },
     skills: []
   })
@@ -42,11 +45,13 @@ const UserInfoManager = () => {
         summary: userInfo.summary || '',
         location: userInfo.location || '',
         profileImage: userInfo.profileImage || '',
+        cvUrl: userInfo.cvUrl || '',
         socialLinks: userInfo.socialLinks || {
-          linkedin: '',
+          codeforces: '',
+          codechef: '',
           github: '',
-          twitter: '',
-          email: ''
+          linkedin: '',
+          leetcode: ''
         },
         skills: userInfo.skills || []
       })
@@ -193,6 +198,41 @@ const UserInfoManager = () => {
     }
   }
 
+  const handleCVUpload = async (event) => {
+    const file = event.target.files[0]
+    if (!file) return
+
+    // Validate file size (10MB max)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File size must be less than 10MB')
+      return
+    }
+
+    // Validate file type
+    if (file.type !== 'application/pdf') {
+      toast.error('Please select a valid PDF file')
+      return
+    }
+
+    try {
+      toast.loading('Uploading CV...')
+      const result = await uploadCV(file)
+      
+      if (result.success) {
+        setFormData({ ...formData, cvUrl: result.data.cvUrl })
+        toast.dismiss()
+        toast.success('CV uploaded successfully!')
+      } else {
+        toast.dismiss()
+        toast.error(result.error)
+      }
+    } catch (error) {
+      console.error('Error uploading CV:', error)
+      toast.dismiss()
+      toast.error('Failed to upload CV')
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -302,20 +342,73 @@ const UserInfoManager = () => {
             </div>
           </div>
 
+          {/* CV Upload */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              CV/Resume
+            </label>
+            {isEditing ? (
+              <div className="space-y-3">
+                <input
+                  type="file"
+                  accept=".pdf"
+                  onChange={handleCVUpload}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-green-400 file:text-black hover:file:bg-green-500"
+                />
+                <p className="text-xs text-gray-400">Upload a new CV/Resume (max 10MB, PDF only)</p>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-4">
+                {formData.cvUrl ? (
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-red-600 rounded-lg flex items-center justify-center">
+                      <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <span className="text-gray-300 text-sm">CV uploaded</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-gray-700 rounded-lg flex items-center justify-center">
+                      <span className="text-gray-400 text-2xl">📄</span>
+                    </div>
+                    <span className="text-gray-300 text-sm">No CV uploaded</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           {/* Social Links */}
           <div>
             <h3 className="text-lg font-semibold text-white mb-4">Social Links</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  LinkedIn
+                  Codeforces
                 </label>
                 <input
                   type="url"
-                  value={formData.socialLinks.linkedin}
-                  onChange={(e) => handleSocialLinkChange('linkedin', e.target.value)}
+                  value={formData.socialLinks.codeforces}
+                  onChange={(e) => handleSocialLinkChange('codeforces', e.target.value)}
                   disabled={!isEditing}
                   className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400 disabled:bg-gray-600 disabled:cursor-not-allowed"
+                  placeholder="https://codeforces.com/profile/username"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  CodeChef
+                </label>
+                <input
+                  type="url"
+                  value={formData.socialLinks.codechef}
+                  onChange={(e) => handleSocialLinkChange('codechef', e.target.value)}
+                  disabled={!isEditing}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400 disabled:bg-gray-600 disabled:cursor-not-allowed"
+                  placeholder="https://www.codechef.com/users/username"
                 />
               </div>
 
@@ -329,32 +422,35 @@ const UserInfoManager = () => {
                   onChange={(e) => handleSocialLinkChange('github', e.target.value)}
                   disabled={!isEditing}
                   className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400 disabled:bg-gray-600 disabled:cursor-not-allowed"
+                  placeholder="https://github.com/username"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Twitter
+                  LinkedIn
                 </label>
                 <input
                   type="url"
-                  value={formData.socialLinks.twitter}
-                  onChange={(e) => handleSocialLinkChange('twitter', e.target.value)}
+                  value={formData.socialLinks.linkedin}
+                  onChange={(e) => handleSocialLinkChange('linkedin', e.target.value)}
                   disabled={!isEditing}
                   className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400 disabled:bg-gray-600 disabled:cursor-not-allowed"
+                  placeholder="https://linkedin.com/in/username"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Email
+                  LeetCode
                 </label>
                 <input
-                  type="email"
-                  value={formData.socialLinks.email}
-                  onChange={(e) => handleSocialLinkChange('email', e.target.value)}
+                  type="url"
+                  value={formData.socialLinks.leetcode}
+                  onChange={(e) => handleSocialLinkChange('leetcode', e.target.value)}
                   disabled={!isEditing}
                   className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400 disabled:bg-gray-600 disabled:cursor-not-allowed"
+                  placeholder="https://leetcode.com/username"
                 />
               </div>
             </div>
