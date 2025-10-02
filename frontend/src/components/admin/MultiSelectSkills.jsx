@@ -70,50 +70,6 @@ const MultiSelectSkills = ({
 
   return (
     <div className="space-y-4">
-      {/* Selected Skills */}
-      {selectedSkills.length > 0 && (
-        <div className="space-y-3">
-          <h4 className="text-sm font-medium text-gray-300">Selected Skills</h4>
-          <div className="space-y-2">
-            {selectedSkills.map((selectedSkill) => (
-              <div key={selectedSkill.skillId} className="bg-gray-700 rounded-lg p-3">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center space-x-3">
-                    {selectedSkill.skill?.logoSvg ? (
-                      <span
-                        className="w-6 h-6"
-                        dangerouslySetInnerHTML={{ __html: selectedSkill.skill.logoSvg }}
-                      />
-                    ) : (
-                      <img 
-                        src={selectedSkill.skill?.logoUrl} 
-                        alt={selectedSkill.skill?.name}
-                        className="w-6 h-6 object-contain"
-                        onError={(e) => {
-                          e.target.style.display = 'none'
-                        }}
-                      />
-                    )}
-                    <span className="text-white font-medium">{selectedSkill.skill?.name}</span>
-                    <span className="text-xs text-gray-400 bg-gray-600 px-2 py-1 rounded">
-                      {selectedSkill.skill?.category}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => handleSkillRemove(selectedSkill.skillId)}
-                    disabled={disabled}
-                    className="text-red-400 hover:text-red-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <XMarkIcon className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Skill Selector */}
       <div className="relative" ref={dropdownRef}>
         <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -256,6 +212,50 @@ const MultiSelectSkills = ({
           </div>
         )}
       </div>
+
+      {/* Selected Skills - Now below the dropdown */}
+      {selectedSkills.length > 0 && (
+        <div className="space-y-3">
+          <h4 className="text-sm font-medium text-gray-300">Selected Skills</h4>
+          <div className="space-y-2">
+            {selectedSkills.map((selectedSkill) => (
+              <div key={selectedSkill.skillId} className="bg-gray-700 rounded-lg p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-3">
+                    {selectedSkill.skill?.logoSvg ? (
+                      <span
+                        className="w-6 h-6"
+                        dangerouslySetInnerHTML={{ __html: selectedSkill.skill.logoSvg }}
+                      />
+                    ) : (
+                      <img 
+                        src={selectedSkill.skill?.logoUrl} 
+                        alt={selectedSkill.skill?.name}
+                        className="w-6 h-6 object-contain"
+                        onError={(e) => {
+                          e.target.style.display = 'none'
+                        }}
+                      />
+                    )}
+                    <span className="text-white font-medium">{selectedSkill.skill?.name}</span>
+                    <span className="text-xs text-gray-400 bg-gray-600 px-2 py-1 rounded">
+                      {selectedSkill.skill?.category}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleSkillRemove(selectedSkill.skillId)}
+                    disabled={disabled}
+                    className="text-red-400 hover:text-red-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <XMarkIcon className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

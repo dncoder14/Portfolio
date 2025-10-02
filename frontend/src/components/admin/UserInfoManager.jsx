@@ -13,7 +13,8 @@ const UserInfoManager = () => {
     createSkill, 
     updateUserSkills, 
     fetchSkills, 
-    fetchUserSkills 
+    fetchUserSkills,
+    uploadProfileImage 
   } = useAdmin()
   const [formData, setFormData] = useState({
     name: '',
@@ -156,6 +157,42 @@ const UserInfoManager = () => {
     }
   }
 
+  const handleImageUpload = async (event) => {
+    const file = event.target.files[0]
+    if (!file) return
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size must be less than 5MB')
+      return
+    }
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Please select a valid image file (JPG, PNG, GIF, WebP)')
+      return
+    }
+
+    try {
+      toast.loading('Uploading image...')
+      const result = await uploadProfileImage(file)
+      
+      if (result.success) {
+        setFormData({ ...formData, profileImage: result.data.profileImageUrl })
+        toast.dismiss()
+        toast.success('Profile image uploaded successfully!')
+      } else {
+        toast.dismiss()
+        toast.error(result.error)
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error)
+      toast.dismiss()
+      toast.error('Failed to upload image')
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -229,15 +266,39 @@ const UserInfoManager = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Profile Image URL
+                Profile Image
               </label>
-              <input
-                type="url"
-                value={formData.profileImage}
-                onChange={(e) => setFormData({ ...formData, profileImage: e.target.value })}
-                disabled={!isEditing}
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400 disabled:bg-gray-600 disabled:cursor-not-allowed"
-              />
+              {isEditing ? (
+                <div className="space-y-3">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-green-400 file:text-black hover:file:bg-green-500"
+                  />
+                  <p className="text-xs text-gray-400">Upload a new profile image (max 5MB, JPG/PNG/GIF/WebP)</p>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-4">
+                  {formData.profileImage ? (
+                    <img 
+                      src={formData.profileImage} 
+                      alt="Profile" 
+                      className="w-16 h-16 rounded-full object-cover border-2 border-gray-600"
+                      onError={(e) => {
+                        e.target.src = '/images/profile.png'
+                      }}
+                    />
+                  ) : (
+                    <div className="w-16 h-16 rounded-full bg-gray-700 border-2 border-gray-600 flex items-center justify-center">
+                      <span className="text-gray-400 text-2xl">👤</span>
+                    </div>
+                  )}
+                  <span className="text-gray-300 text-sm">
+                    {formData.profileImage ? 'Current profile image' : 'No profile image set'}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 

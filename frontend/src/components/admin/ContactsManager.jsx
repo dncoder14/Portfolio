@@ -8,6 +8,7 @@ const ContactsManager = () => {
   const [selectedContact, setSelectedContact] = useState(null)
   const [filter, setFilter] = useState('all') // all, read, unread
   const contactsRef = useRef()
+  const modalRef = useRef()
 
   useEffect(() => {
     const tl = gsap.timeline()
@@ -26,6 +27,16 @@ const ContactsManager = () => {
     })
 
   }, [contacts])
+
+  // Auto-scroll to modal when it opens
+  useEffect(() => {
+    if (selectedContact && modalRef.current) {
+      modalRef.current.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'center' 
+      })
+    }
+  }, [selectedContact])
 
   const filteredContacts = contacts.filter(contact => {
     if (filter === 'read') return contact.read
@@ -120,7 +131,7 @@ const ContactsManager = () => {
       {/* Contact Detail Modal */}
       {selectedContact && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div ref={modalRef} className="bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-start mb-6">
               <h3 className="text-xl font-bold text-white">Message Details</h3>
               <button

@@ -4,7 +4,7 @@ import axios from 'axios';
 const AdminContext = createContext();
 
 // API base URL
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
 
 // Create a dedicated axios instance for API requests
 const api = axios.create({
@@ -366,6 +366,30 @@ export function AdminProvider({ children }) {
     }
   };
 
+  // Upload profile image
+  const uploadProfileImage = async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append('profileImage', file);
+      
+      const response = await api.post('/userinfo/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      
+      // Update user info with new profile image
+      dispatch({ 
+        type: ActionTypes.UPDATE_USER_INFO, 
+        payload: { ...state.userInfo, profileImage: response.data.profileImageUrl }
+      });
+      
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.error || 'Failed to upload profile image' };
+    }
+  };
+
   const value = {
     ...state,
     login,
@@ -382,7 +406,8 @@ export function AdminProvider({ children }) {
     createSkill,
     updateUserSkills,
     fetchSkills,
-    fetchUserSkills
+    fetchUserSkills,
+    uploadProfileImage
   };
 
   return (

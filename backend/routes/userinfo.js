@@ -1,7 +1,29 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 const router = express.Router();
 const prisma = new PrismaClient();
+
+// Configure multer for file uploads (in memory storage)
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|gif|webp/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+    
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed!'));
+    }
+  }
+});
 
 // GET /api/userinfo - Get user information
 router.get('/', async (req, res) => {
@@ -73,6 +95,46 @@ router.get('/', async (req, res) => {
   } catch (error) {
     console.error('Error fetching user info:', error);
     res.status(500).json({ error: 'Failed to fetch user information' });
+  }
+});
+
+// POST /api/userinfo/upload - Upload profile image
+router.post('/upload', upload.single('profileImage'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    // Write image directly to frontend public directory
+    const frontendPublicDir = path.join(__dirname, '../../frontend/public/images');
+    if (!fs.existsSync(frontendPublicDir)) {
+      fs.mkdirSync(frontendPublicDir, { recursive: true });
+    }
+    
+    const frontendImagePath = path.join(frontendPublicDir, 'profile.jpg');
+    fs.writeFileSync(frontendImagePath, req.file.buffer);
+    
+    // Use relative URL that will be served from frontend
+    const profileImageUrl = '/images/profile.jpg';
+    
+    // Update user with new profile image
+    const updatedUser = await prisma.user.updateMany({
+      where: {
+        email: 'dhiraj.pandit@adypu.edu.in'
+      },
+      data: {
+        profileImage: profileImageUrl
+      }
+    });
+
+    res.json({ 
+      message: 'Profile image uploaded successfully', 
+      profileImageUrl,
+      updatedUser 
+    });
+  } catch (error) {
+    console.error('Error uploading profile image:', error);
+    res.status(500).json({ error: 'Failed to upload profile image' });
   }
 });
 

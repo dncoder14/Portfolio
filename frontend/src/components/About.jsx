@@ -145,17 +145,24 @@ const About = () => {
           {/* Image */}
           <div ref={imageRef} className="relative">
             <div className="relative w-full h-96 lg:h-[500px] rounded-lg overflow-hidden flex items-center justify-center bg-gray-800">
-              {/* {userInfo?.profileImage ? ( */}
+              {userInfo?.profileImage ? (
                 <img
-                  src={'/images/profile.png'}
-                  alt="Dhiraj Pandit"
+                  src={userInfo.profileImage}
+                  alt="Profile"
                   className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.style.display = 'none'
+                    e.target.nextSibling.style.display = 'flex'
+                  }}
                 />
-              {/* ) : (
+              ) : null}
+              <div 
+                className={`w-full h-full ${userInfo?.profileImage ? 'hidden' : 'flex'} items-center justify-center bg-gradient-to-br from-green-400 to-green-600`}
+              >
                 <div className="w-64 h-64 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center text-6xl font-bold text-black">
                   DP
                 </div>
-              )} */}
+              </div>
               <div className="absolute inset-0 bg-gradient-to-br from-green-400/10 to-green-600/10"></div>
             </div>
 
