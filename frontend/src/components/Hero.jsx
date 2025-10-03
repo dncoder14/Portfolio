@@ -47,6 +47,7 @@ const Hero = () => {
   const socialRef = useRef()
   const ctaRef = useRef()
   const { userInfo } = useApp()
+  const hasAnimatedSocial = useRef(false)
 
   useEffect(() => {
     const tl = gsap.timeline()
@@ -76,12 +77,8 @@ const Hero = () => {
         duration: 0.8,
         ease: "power3.out"
       }, "-=0.3")
-      .to(socialRef.current, {
-        opacity: 1,
-        y: 0,
-        duration: 0.8,
-        ease: "power3.out"
-      }, "-=0.3")
+      // Reveal the container first
+      // Social links animate via a separate effect once data is available
       .to(ctaRef.current, {
         opacity: 1,
         y: 0,
@@ -107,6 +104,30 @@ const Hero = () => {
   
   // Filter social links to only show the ones with URLs
   const filteredSocialLinks = Object.entries(socialLinks).filter(([_, url]) => url && url.trim() !== '')  
+
+  // Animate social links when they become available (handles async data)
+  useEffect(() => {
+    if (!socialRef.current) return
+    if (!filteredSocialLinks.length) return
+    if (hasAnimatedSocial.current) return
+
+    // Prepare initial hidden state
+    gsap.set(socialRef.current, { opacity: 0, y: 24 })
+    const items = socialRef.current.querySelectorAll('a')
+    if (items && items.length) {
+      gsap.set(items, { opacity: 0, y: 10 })
+    }
+
+    // Reveal container then stagger children
+    const tl = gsap.timeline()
+    tl.to(socialRef.current, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' })
+      .to(items, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out', stagger: 0.08 }, '-=0.2')
+      .add(() => { hasAnimatedSocial.current = true })
+
+    return () => {
+      tl.kill()
+    }
+  }, [filteredSocialLinks.length])
 
   return (
     <section
@@ -155,7 +176,7 @@ const Hero = () => {
         {filteredSocialLinks.length > 0 && (
           <div
             ref={socialRef}
-            className="flex justify-center items-center gap-4 mb-12"
+            className="mx-auto w-fit grid grid-flow-col auto-cols-max place-items-center justify-items-center justify-center items-center gap-4 mb-12 opacity-0"
           >
             {filteredSocialLinks.map(([platform, url]) => (
               <a
@@ -163,7 +184,7 @@ const Hero = () => {
                 href={url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-400 hover:text-green-400 transition-colors duration-300 inline-flex items-center justify-center"
+                className="text-gray-400 hover:text-green-400 transition-colors duration-300 inline-flex items-center justify-center w-10 h-10 shrink-0"
                 aria-label={platform}
               >
                 <span className="inline-flex w-10 h-10 rounded-full items-center justify-center bg-white/0">
