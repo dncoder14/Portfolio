@@ -13,25 +13,29 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(helmet());
-const allowedOrigins = process.env.NODE_ENV === 'production'
-  ? [
-      'https://portfolio-eex9202en-dncoder14s-projects.vercel.app',
-      'https://portfolio-git-main-dncoder14s-projects.vercel.app',
-      'https://portfolio-dncoder14s-projects.vercel.app'
-    ]
-  : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3004', 'http://localhost:5173'];
+const allowedOrigins = [
+  'https://portfolio-eex9202en-dncoder14s-projects.vercel.app',
+  'https://portfolio-git-main-dncoder14s-projects.vercel.app',
+  'https://portfolio-dncoder14s-projects.vercel.app',
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:3004',
+  'http://localhost:5173'
+];
+
+console.log('Allowed origins:', allowedOrigins);
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
+    console.log('Request from origin:', origin);
+    
     if (!origin) return callback(null, true);
     
-    // Check if origin is in allowed list
-    if (allowedOrigins.includes(origin)) {
+    if (allowedOrigins.indexOf(origin) !== -1) {
       return callback(null, true);
     }
     
-    console.warn('⚠️ CORS blocked origin:', origin);
+    console.warn('CORS blocked origin:', origin);
     return callback(new Error('Not allowed by CORS'), false);
   },
   credentials: true,
