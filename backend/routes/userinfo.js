@@ -59,9 +59,7 @@ router.get('/', async (req, res) => {
           profileImage: '/images/profile.jpg',
           socialLinks: {
             linkedin: 'https://linkedin.com/in/dhiraj-pandit',
-            github: 'https://github.com/dhiraj-pandit',
-            twitter: 'https://twitter.com/dhiraj_pandit',
-            email: 'dhiraj.pandit@adypu.edu.in'
+            github: 'https://github.com/dhiraj-pandit'
           },
           skills: [
             { name: 'React', icon: 'react', level: 90 },
