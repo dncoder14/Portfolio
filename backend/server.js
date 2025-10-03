@@ -19,12 +19,25 @@ const allowedOrigins = process.env.NODE_ENV === 'production'
       'https://portfolio-git-main-dncoder14s-projects.vercel.app',
       'https://portfolio-dncoder14s-projects.vercel.app'
     ]
-  : ['http://localhost:3000', 'http://localhost:3004', 'http://localhost:5173'];
+  : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3004', 'http://localhost:5173'];
 
-  app.use(cors({
-    origin: '*',
-    credentials: false // Must be false when origin is '*'
-  }));
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Check if origin is in allowed list
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    console.warn('⚠️ CORS blocked origin:', origin);
+    return callback(new Error('Not allowed by CORS'), false);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
