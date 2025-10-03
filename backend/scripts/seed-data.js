@@ -10,7 +10,13 @@ async function seedData() {
     // Create user info
     const user = await prisma.user.upsert({
       where: { email: 'dhiraj.pandit@adypu.edu.in' },
-      update: {},
+      update: {
+        socialLinks: {
+          linkedin: 'https://linkedin.com/in/dhiraj-pandit',
+          github: 'https://github.com/dhiraj-pandit',
+          email: 'dhiraj.pandit@adypu.edu.in'
+        }
+      },
       create: {
         name: 'Dhiraj Pandit',
         email: 'dhiraj.pandit@adypu.edu.in',
@@ -20,7 +26,6 @@ async function seedData() {
         socialLinks: {
           linkedin: 'https://linkedin.com/in/dhiraj-pandit',
           github: 'https://github.com/dhiraj-pandit',
-          twitter: 'https://twitter.com/dhiraj_pandit',
           email: 'dhiraj.pandit@adypu.edu.in'
         },
         skills: [

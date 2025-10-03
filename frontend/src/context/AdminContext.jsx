@@ -302,6 +302,7 @@ export function AdminProvider({ children }) {
   const updateUserInfo = async (userData) => {
     try {
       const response = await api.put('/userinfo', userData);
+      // Response now returns the full updated user record
       dispatch({ type: ActionTypes.UPDATE_USER_INFO, payload: response.data });
       return { success: true, data: response.data };
     } catch (error) {

@@ -190,22 +190,13 @@ router.put('/', async (req, res) => {
   try {
     const { name, summary, location, profileImage, cvUrl, socialLinks, skills } = req.body;
     
-    const updatedUser = await prisma.user.updateMany({
-      where: {
-        email: 'dhiraj.pandit@adypu.edu.in'
-      },
-      data: {
-        name,
-        summary,
-        location,
-        profileImage,
-        cvUrl,
-        socialLinks,
-        skills
-      }
+    // Update user and return the full, updated record
+    const updatedUser = await prisma.user.update({
+      where: { email: 'dhiraj.pandit@adypu.edu.in' },
+      data: { name, summary, location, profileImage, cvUrl, socialLinks, skills }
     });
 
-    res.json({ message: 'User information updated successfully', updatedUser });
+    res.json(updatedUser);
   } catch (error) {
     console.error('Error updating user info:', error);
     res.status(500).json({ error: 'Failed to update user information' });

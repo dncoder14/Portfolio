@@ -2,10 +2,11 @@ import React, { useEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
 import { useAdmin } from '../../context/AdminContext'
 import toast from 'react-hot-toast'
+import SidePanel from './SidePanel'
 
 const CertificatesManager = () => {
   const { certificates, createCertificate, updateCertificate, deleteCertificate } = useAdmin()
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isPanelOpen, setIsPanelOpen] = useState(false)
   const [editingCertificate, setEditingCertificate] = useState(null)
   const [formData, setFormData] = useState({
     title: '',
@@ -54,11 +55,11 @@ const CertificatesManager = () => {
         imageUrl: ''
       })
     }
-    setIsModalOpen(true)
+    setIsPanelOpen(true)
   }
 
   const handleCloseModal = () => {
-    setIsModalOpen(false)
+    setIsPanelOpen(false)
     setEditingCertificate(null)
     setFormData({
       title: '',
@@ -108,6 +109,35 @@ const CertificatesManager = () => {
     })
   }
 
+  const renderForm = () => (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-2">Title *</label>
+        <input type="text" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} required className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400" />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-2">Organization *</label>
+        <input type="text" value={formData.organization} onChange={(e) => setFormData({ ...formData, organization: e.target.value })} required className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400" />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-2">Date *</label>
+        <input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} required className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400" />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-2">Certificate URL</label>
+        <input type="url" value={formData.certificateUrl} onChange={(e) => setFormData({ ...formData, certificateUrl: e.target.value })} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400" />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-2">Image URL</label>
+        <input type="url" value={formData.imageUrl} onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400" />
+      </div>
+      <div className="flex space-x-4 pt-2">
+        <button type="submit" className="px-6 py-2 bg-green-400 hover:bg-green-500 text-black font-semibold rounded transition-colors duration-300">{editingCertificate ? 'Update' : 'Create'}</button>
+        <button type="button" onClick={handleCloseModal} className="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded transition-colors duration-300">Cancel</button>
+      </div>
+    </form>
+  )
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -120,9 +150,10 @@ const CertificatesManager = () => {
         </button>
       </div>
 
-      <div ref={certificatesRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {certificates.map((certificate) => (
-          <div key={certificate.id} className="bg-gray-800 rounded-lg p-6">
+      <div className="lg:grid lg:grid-cols-[1fr_minmax(340px,500px)] lg:gap-6">
+        <div ref={certificatesRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+          {certificates.map((certificate) => (
+            <div key={certificate.id} className={`bg-gray-800 rounded-lg p-6 ${editingCertificate?.id === certificate.id ? 'ring-2 ring-green-400' : ''}`}>
             <div className="mb-4">
               <h3 className="text-lg font-semibold text-white mb-2">{certificate.title}</h3>
               <p className="text-gray-300 text-sm mb-2">{certificate.organization}</p>
@@ -166,101 +197,33 @@ const CertificatesManager = () => {
                 </a>
               </div>
             )}
-          </div>
-        ))}
-      </div>
-
-      {/* Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <h3 className="text-xl font-bold text-white mb-6">
-              {editingCertificate ? 'Edit Certificate' : 'Add New Certificate'}
-            </h3>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Title *
-                </label>
-                <input
-                  type="text"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  required
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Organization *
-                </label>
-                <input
-                  type="text"
-                  value={formData.organization}
-                  onChange={(e) => setFormData({ ...formData, organization: e.target.value })}
-                  required
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Date *
-                </label>
-                <input
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  required
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Certificate URL
-                </label>
-                <input
-                  type="url"
-                  value={formData.certificateUrl}
-                  onChange={(e) => setFormData({ ...formData, certificateUrl: e.target.value })}
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Image URL
-                </label>
-                <input
-                  type="url"
-                  value={formData.imageUrl}
-                  onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400"
-                />
-              </div>
-
-              <div className="flex space-x-4 pt-4">
-                <button
-                  type="submit"
-                  className="px-6 py-2 bg-green-400 hover:bg-green-500 text-black font-semibold rounded transition-colors duration-300"
-                >
-                  {editingCertificate ? 'Update' : 'Create'}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCloseModal}
-                  className="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded transition-colors duration-300"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
+            </div>
+          ))}
+        </div>
+        <div className="hidden lg:block">
+          <div className="sticky top-6">
+            <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+              <h3 className="text-xl font-bold text-white mb-4">{editingCertificate ? 'Edit Certificate' : 'Create Certificate'}</h3>
+              {isPanelOpen ? (
+                renderForm()
+              ) : (
+                <p className="text-gray-400 text-sm">Select a certificate to edit, or click "Add New Certificate".</p>
+              )}
+            </div>
           </div>
         </div>
-      )}
+      </div>
+
+      <div className="lg:hidden">
+        <SidePanel
+          title={editingCertificate ? 'Edit Certificate' : 'Add New Certificate'}
+          isOpen={isPanelOpen}
+          onClose={handleCloseModal}
+          size="md"
+        >
+          {renderForm()}
+        </SidePanel>
+      </div>
     </div>
   )
 }

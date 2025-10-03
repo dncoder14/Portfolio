@@ -1,11 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState, useMemo } from 'react'
 import { gsap } from 'gsap'
 import { useAdmin } from '../../context/AdminContext'
 import toast from 'react-hot-toast'
+import SidePanel from './SidePanel'
 
 const ProjectsManager = () => {
   const { projects, createProject, updateProject, deleteProject } = useAdmin()
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isPanelOpen, setIsPanelOpen] = useState(false)
   const [editingProject, setEditingProject] = useState(null)
   const [formData, setFormData] = useState({
     title: '',
@@ -61,11 +62,11 @@ const ProjectsManager = () => {
         featured: false
       })
     }
-    setIsModalOpen(true)
+    setIsPanelOpen(true)
   }
 
   const handleCloseModal = () => {
-    setIsModalOpen(false)
+    setIsPanelOpen(false)
     setEditingProject(null)
     setFormData({
       title: '',
@@ -125,6 +126,68 @@ const ProjectsManager = () => {
     })
   }
 
+  const renderForm = () => (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-2">Title *</label>
+        <input
+          type="text"
+          value={formData.title}
+          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+          required
+          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-2">Description *</label>
+        <textarea
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          required
+          rows={4}
+          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400 resize-none"
+        />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-2">Image URL</label>
+          <input type="url" value={formData.imageUrl} onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-2">GitHub URL</label>
+          <input type="url" value={formData.githubUrl} onChange={(e) => setFormData({ ...formData, githubUrl: e.target.value })} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400" />
+        </div>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-2">Demo URL</label>
+        <input type="url" value={formData.demoUrl} onChange={(e) => setFormData({ ...formData, demoUrl: e.target.value })} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400" />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-2">Technologies</label>
+        <div className="flex space-x-2 mb-2">
+          <input type="text" value={newTech} onChange={(e) => setNewTech(e.target.value)} placeholder="Add technology" className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400" onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTechnology())} />
+          <button type="button" onClick={addTechnology} className="px-4 py-2 bg-green-400 hover:bg-green-500 text-black rounded transition-colors duration-300">Add</button>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {formData.technologies.map((tech, index) => (
+            <span key={index} className="px-2 py-1 bg-gray-700 text-gray-300 text-sm rounded flex items-center space-x-1">
+              <span>{tech}</span>
+              <button type="button" onClick={() => removeTechnology(tech)} className="text-red-400 hover:text-red-300">×</button>
+            </span>
+          ))}
+        </div>
+      </div>
+      <div className="flex items-center">
+        <input type="checkbox" id="featured" checked={formData.featured} onChange={(e) => setFormData({ ...formData, featured: e.target.checked })} className="w-4 h-4 text-green-400 bg-gray-700 border-gray-600 rounded focus:ring-green-400" />
+        <label htmlFor="featured" className="ml-2 text-sm text-gray-300">Featured Project</label>
+      </div>
+      <div className="flex space-x-4 pt-2">
+        <button type="submit" className="px-6 py-2 bg-green-400 hover:bg-green-500 text-black font-semibold rounded transition-colors duration-300">{editingProject ? 'Update' : 'Create'}</button>
+        <button type="button" onClick={handleCloseModal} className="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded transition-colors duration-300">Cancel</button>
+      </div>
+    </form>
+  )
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -137,9 +200,10 @@ const ProjectsManager = () => {
         </button>
       </div>
 
-      <div ref={projectsRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {projects.map((project) => (
-          <div key={project.id} className="bg-gray-800 rounded-lg p-6">
+      <div className="lg:grid lg:grid-cols-[1fr_minmax(360px,520px)] lg:gap-6">
+        <div ref={projectsRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+          {projects.map((project) => (
+            <div key={project.id} className={`bg-gray-800 rounded-lg p-6 ${editingProject?.id === project.id ? 'ring-2 ring-green-400' : ''}`}>
             <div className="flex justify-between items-start mb-4">
               <h3 className="text-lg font-semibold text-white">{project.title}</h3>
               {project.featured && (
@@ -180,155 +244,33 @@ const ProjectsManager = () => {
                 Delete
               </button>
             </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <h3 className="text-xl font-bold text-white mb-6">
-              {editingProject ? 'Edit Project' : 'Add New Project'}
-            </h3>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Title *
-                </label>
-                <input
-                  type="text"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  required
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Description *
-                </label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  required
-                  rows={4}
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400 resize-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Image URL
-                  </label>
-                  <input
-                    type="url"
-                    value={formData.imageUrl}
-                    onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    GitHub URL
-                  </label>
-                  <input
-                    type="url"
-                    value={formData.githubUrl}
-                    onChange={(e) => setFormData({ ...formData, githubUrl: e.target.value })}
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Demo URL
-                </label>
-                <input
-                  type="url"
-                  value={formData.demoUrl}
-                  onChange={(e) => setFormData({ ...formData, demoUrl: e.target.value })}
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Technologies
-                </label>
-                <div className="flex space-x-2 mb-2">
-                  <input
-                    type="text"
-                    value={newTech}
-                    onChange={(e) => setNewTech(e.target.value)}
-                    placeholder="Add technology"
-                    className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400"
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTechnology())}
-                  />
-                  <button
-                    type="button"
-                    onClick={addTechnology}
-                    className="px-4 py-2 bg-green-400 hover:bg-green-500 text-black rounded transition-colors duration-300"
-                  >
-                    Add
-                  </button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {formData.technologies.map((tech, index) => (
-                    <span
-                      key={index}
-                      className="px-2 py-1 bg-gray-700 text-gray-300 text-sm rounded flex items-center space-x-1"
-                    >
-                      <span>{tech}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeTechnology(tech)}
-                        className="text-red-400 hover:text-red-300"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="featured"
-                  checked={formData.featured}
-                  onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
-                  className="w-4 h-4 text-green-400 bg-gray-700 border-gray-600 rounded focus:ring-green-400"
-                />
-                <label htmlFor="featured" className="ml-2 text-sm text-gray-300">
-                  Featured Project
-                </label>
-              </div>
-
-              <div className="flex space-x-4 pt-4">
-                <button
-                  type="submit"
-                  className="px-6 py-2 bg-green-400 hover:bg-green-500 text-black font-semibold rounded transition-colors duration-300"
-                >
-                  {editingProject ? 'Update' : 'Create'}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCloseModal}
-                  className="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded transition-colors duration-300"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
+            </div>
+          ))}
+        </div>
+        <div className="hidden lg:block">
+          <div className="sticky top-6">
+            <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+              <h3 className="text-xl font-bold text-white mb-4">{editingProject ? 'Edit Project' : 'Create Project'}</h3>
+              {isPanelOpen ? (
+                renderForm()
+              ) : (
+                <p className="text-gray-400 text-sm">Select a project to edit, or click "Add New Project".</p>
+              )}
+            </div>
           </div>
         </div>
-      )}
+      </div>
+
+      <div className="lg:hidden">
+        <SidePanel
+          title={editingProject ? 'Edit Project' : 'Add New Project'}
+          isOpen={isPanelOpen}
+          onClose={handleCloseModal}
+          size="lg"
+        >
+          {renderForm()}
+        </SidePanel>
+      </div>
     </div>
   )
 }
