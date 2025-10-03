@@ -14,6 +14,7 @@
     "setup:admin": "cd backend && npm run setup:admin",
     "seed": "cd backend && npm run seed"
   },
+  "postinstall": "npm --prefix backend install --omit=dev && npm --prefix frontend install",
   "keywords": [
     "portfolio",
     "react",
