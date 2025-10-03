@@ -8,6 +8,7 @@
     "dev:frontend": "cd frontend && npm run dev",
     "dev:backend": "cd backend && npm run dev",
     "build": "npm --prefix frontend install --omit=dev && npm --prefix frontend run build",
+    "prestart": "npm --prefix backend install --omit=dev",
     "start": "cd backend && npm start",
     "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install",
     "setup": "cd backend && npm run setup",
