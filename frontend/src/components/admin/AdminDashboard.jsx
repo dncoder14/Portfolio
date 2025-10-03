@@ -5,6 +5,7 @@ import ProjectsManager from './ProjectsManager'
 import CertificatesManager from './CertificatesManager'
 import ContactsManager from './ContactsManager'
 import UserInfoManager from './UserInfoManager'
+import ChangePassword from './ChangePassword'
 
 const AdminDashboard = () => {
   const { 
@@ -16,6 +17,7 @@ const AdminDashboard = () => {
   } = useAdmin()
   
   const [activeTab, setActiveTab] = useState('dashboard')
+  const [showChangePassword, setShowChangePassword] = useState(false)
   const dashboardRef = useRef()
   const statsRef = useRef()
 
@@ -72,6 +74,10 @@ const AdminDashboard = () => {
     )
   }
 
+  if (showChangePassword) {
+    return <ChangePassword onBack={() => setShowChangePassword(false)} />
+  }
+
   return (
     <div className="min-h-screen bg-black">
       {/* Header */}
@@ -85,6 +91,12 @@ const AdminDashboard = () => {
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-gray-300">Welcome, {admin?.username}</span>
+              <button
+                onClick={() => setShowChangePassword(true)}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-300"
+              >
+                Change Password
+              </button>
               <button
                 onClick={handleLogout}
                 className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-300"

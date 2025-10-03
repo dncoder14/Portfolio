@@ -414,6 +414,22 @@ export function AdminProvider({ children }) {
     }
   };
 
+  // Change password
+  const changePassword = async (passwordData) => {
+    try {
+      const response = await api.post('/admin/change-password', passwordData);
+      
+      // If password change requires re-authentication, logout user
+      if (response.data.requiresReauth) {
+        logout();
+      }
+      
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.error || 'Failed to change password' };
+    }
+  };
+
   const value = {
     ...state,
     login,
@@ -432,7 +448,8 @@ export function AdminProvider({ children }) {
     fetchSkills,
     fetchUserSkills,
     uploadProfileImage,
-    uploadCV
+    uploadCV,
+    changePassword
   };
 
   return (

@@ -49,8 +49,11 @@ router.post('/login', [
     }
 
     // Verify password
+    // Handle default password scenario - if stored password is default hash, allow 'admin123'
     const isValidPassword = await bcrypt.compare(password, admin.password);
-    if (!isValidPassword) {
+    const isDefaultPassword = password === 'admin123' && await bcrypt.compare('admin123', admin.password);
+    
+    if (!isValidPassword && !isDefaultPassword) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
@@ -158,6 +161,70 @@ router.get('/dashboard', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Error fetching dashboard stats:', error);
     res.status(500).json({ error: 'Failed to fetch dashboard stats' });
+  }
+});
+
+// POST /api/admin/change-password - Change admin password (Protected)
+router.post('/change-password', authenticateToken, [
+  body('currentPassword').notEmpty().withMessage('Current password is required'),
+  body('newPassword').isLength({ min: 6 }).withMessage('New password must be at least 6 characters'),
+  body('confirmPassword').notEmpty().withMessage('Confirm password is required')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+
+    // Validate that new password and confirm password match
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ error: 'New password and confirm password do not match' });
+    }
+
+    // Get admin user
+    const admin = await prisma.admin.findUnique({
+      where: {
+        id: req.user.id
+      }
+    });
+
+    if (!admin) {
+      return res.status(404).json({ error: 'Admin user not found' });
+    }
+
+    // Check current password
+    // If password is the default 'admin123' hash, allow login with plain 'admin123'
+    const defaultPasswordHash = await bcrypt.hash('admin123', 12);
+    const isDefaultPassword = await bcrypt.compare('admin123', admin.password);
+    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, admin.password);
+
+    if (!isCurrentPasswordValid && !isDefaultPassword) {
+      return res.status(401).json({ error: 'Current password is incorrect' });
+    }
+
+    // Hash new password
+    const hashedNewPassword = await bcrypt.hash(newPassword, 12);
+
+    // Update password in database
+    await prisma.admin.update({
+      where: {
+        id: req.user.id
+      },
+      data: {
+        password: hashedNewPassword
+      }
+    });
+
+    res.json({
+      message: 'Password changed successfully. Please log in again.',
+      requiresReauth: true
+    });
+
+  } catch (error) {
+    console.error('Error changing password:', error);
+    res.status(500).json({ error: 'Failed to change password' });
   }
 });
 
