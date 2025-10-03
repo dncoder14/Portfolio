@@ -96,12 +96,20 @@ export function AppProvider({ children }) {
     try {
       const response = await axios.post(`${API_BASE_URL}/contact`, formData)
       return { success: true, data: response.data }
-    } catch (error) {
-      console.error('Error submitting contact form:', error)
-      return { 
-        success: false, 
-        error: error.response?.data?.error || 'Failed to send message' 
+    } catch (err) {
+      console.error('Error submitting contact form:', err)
+
+      // Normalize common backend validation shape: { errors: [{ msg }...] }
+      const validatorErrors = err.response?.data?.errors
+      if (Array.isArray(validatorErrors) && validatorErrors.length > 0) {
+        return { success: false, error: validatorErrors[0]?.msg || 'Invalid input' }
       }
+
+      // Normalize { error: string } or { code, message }
+      const raw = err.response?.data?.error || err.message || err.code
+      const errorMessage = typeof raw === 'string' ? raw : (raw?.message || 'Failed to send message')
+
+      return { success: false, error: errorMessage }
     }
   }
 
