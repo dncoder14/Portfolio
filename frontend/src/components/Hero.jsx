@@ -101,9 +101,15 @@ const Hero = () => {
   }, [])
 
   const socialLinks = userInfo?.socialLinks || {}
-  
-  // Filter social links to only show the ones with URLs
-  const filteredSocialLinks = Object.entries(socialLinks).filter(([_, url]) => url && url.trim() !== '')  
+
+  // Only allow known platforms and valid http(s) URLs (exclude raw emails or unknown keys)
+  const allowedPlatforms = ['codeforces', 'codechef', 'github', 'linkedin', 'leetcode']
+  const filteredSocialLinks = Object.entries(socialLinks).filter(([platform, url]) => {
+    if (!allowedPlatforms.includes(platform)) return false
+    if (typeof url !== 'string') return false
+    const trimmed = url.trim()
+    return /^https?:\/\//i.test(trimmed)
+  })
 
   // Animate social links when they become available (handles async data)
   useEffect(() => {
