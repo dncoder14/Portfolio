@@ -14,7 +14,7 @@ const PORT = process.env.PORT || 5000;
 app.use(helmet());
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://portfolio-eex9202en-dncoder14s-projects.vercel.app/', 'https://portfolio-git-main-dncoder14s-projects.vercel.app/', 'https://portfolio-dncoder14s-projects.vercel.app/'] 
+    ? ['https://portfolio-eex9202en-dncoder14s-projects.vercel.app', 'https://portfolio-git-main-dncoder14s-projects.vercel.app', 'https://portfolio-dncoder14s-projects.vercel.app'] 
     : ['http://localhost:3000', 'http://localhost:3004', 'http://localhost:5173'],
   credentials: true
 }));
