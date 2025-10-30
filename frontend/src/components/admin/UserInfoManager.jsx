@@ -35,6 +35,7 @@ const UserInfoManager = () => {
   })
   const [selectedSkills, setSelectedSkills] = useState([])
   const [isEditing, setIsEditing] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const formRef = useRef()
 
   useEffect(() => {
@@ -102,6 +103,9 @@ const UserInfoManager = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setIsSaving(true)
+    
+    const loadingToast = toast.loading('Saving...')
     
     try {
       // Update basic user info
@@ -113,20 +117,27 @@ const UserInfoManager = () => {
         if (userInfo?.id) {
           const skillsResult = await updateUserSkills(userInfo.id, skillIds)
           if (skillsResult.success) {
-            toast.success('User information and skills updated successfully!')
+            toast.dismiss(loadingToast)
+            toast.success('Updated successfully!')
             setIsEditing(false)
           } else {
+            toast.dismiss(loadingToast)
             toast.error(skillsResult.error)
           }
         } else {
-          toast.success('User information updated successfully!')
+          toast.dismiss(loadingToast)
+          toast.success('Updated successfully!')
           setIsEditing(false)
         }
       } else {
+        toast.dismiss(loadingToast)
         toast.error(result.error)
       }
     } catch (error) {
+      toast.dismiss(loadingToast)
       toast.error('An error occurred')
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -246,6 +257,58 @@ const UserInfoManager = () => {
       </div>
 
       <div ref={formRef} className="bg-gray-800 rounded-lg p-6">
+        {!userInfo ? (
+          // Skeleton Loading Animation
+          <div className="space-y-6 animate-pulse">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <div className="h-4 bg-gray-700 rounded w-16"></div>
+                <div className="h-10 bg-gray-700 rounded"></div>
+              </div>
+              <div className="space-y-2">
+                <div className="h-4 bg-gray-700 rounded w-16"></div>
+                <div className="h-10 bg-gray-700 rounded"></div>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="h-4 bg-gray-700 rounded w-20"></div>
+              <div className="h-20 bg-gray-700 rounded"></div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <div className="h-4 bg-gray-700 rounded w-20"></div>
+                <div className="h-10 bg-gray-700 rounded"></div>
+              </div>
+              <div className="space-y-2">
+                <div className="h-4 bg-gray-700 rounded w-28"></div>
+                <div className="h-16 bg-gray-700 rounded"></div>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="h-4 bg-gray-700 rounded w-24"></div>
+              <div className="h-16 bg-gray-700 rounded"></div>
+            </div>
+            <div className="space-y-4">
+              <div className="h-6 bg-gray-700 rounded w-32"></div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="space-y-2">
+                    <div className="h-4 bg-gray-700 rounded w-20"></div>
+                    <div className="h-10 bg-gray-700 rounded"></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div className="h-6 bg-gray-700 rounded w-40"></div>
+              <div className="space-y-3">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="h-16 bg-gray-700 rounded"></div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : (
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -316,7 +379,7 @@ const UserInfoManager = () => {
                     onChange={handleImageUpload}
                     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-green-400 file:text-black hover:file:bg-green-500"
                   />
-                  <p className="text-xs text-gray-400">Upload a new profile image (max 5MB, JPG/PNG/GIF/WebP)</p>
+                  <p className="text-xs text-gray-400">{formData.profileImage ? 'Select new image' : 'Upload a new profile image'} (max 5MB, JPG/PNG/GIF/WebP)</p>
                 </div>
               ) : (
                 <div className="flex items-center space-x-4">
@@ -355,7 +418,7 @@ const UserInfoManager = () => {
                   onChange={handleCVUpload}
                   className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-green-400 file:text-black hover:file:bg-green-500"
                 />
-                <p className="text-xs text-gray-400">Upload a new CV/Resume (max 10MB, PDF only)</p>
+                <p className="text-xs text-gray-400">{formData.cvUrl ? 'Select new PDF' : 'Upload a new CV/Resume'} (max 10MB, PDF only)</p>
               </div>
             ) : (
               <div className="flex items-center space-x-4">
@@ -514,20 +577,23 @@ const UserInfoManager = () => {
             <div className="flex space-x-4 pt-6">
               <button
                 type="submit"
-                className="px-6 py-2 bg-green-400 hover:bg-green-500 text-black font-semibold rounded transition-colors duration-300"
+                disabled={isSaving}
+                className="px-6 py-2 bg-green-400 hover:bg-green-500 disabled:bg-gray-500 disabled:cursor-not-allowed text-black font-semibold rounded transition-colors duration-300"
               >
-                Save Changes
+                {isSaving ? 'Saving...' : 'Save Changes'}
               </button>
               <button
                 type="button"
                 onClick={() => setIsEditing(false)}
-                className="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded transition-colors duration-300"
+                disabled={isSaving}
+                className="px-6 py-2 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-white rounded transition-colors duration-300"
               >
                 Cancel
               </button>
             </div>
           )}
         </form>
+        )}
       </div>
     </div>
   )

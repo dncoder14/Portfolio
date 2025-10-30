@@ -138,13 +138,18 @@ const Projects = () => {
               className="group relative bg-gray-800 rounded-lg overflow-hidden hover:bg-gray-700 transition-all duration-300"
             >
               {/* Project Image */}
-              <div className="relative h-48 overflow-hidden">
-                <div 
-                  className="project-image w-full h-full bg-gradient-to-br from-green-400/20 to-green-600/20 flex items-center justify-center text-4xl font-bold text-green-400"
-                  style={{ backgroundImage: project.imageUrl ? `url(${project.imageUrl})` : 'none' }}
-                >
-                  {!project.imageUrl && project.title.charAt(0)}
-                </div>
+              <div className="relative h-48 overflow-hidden bg-gray-900">
+                {project.imageUrl ? (
+                  <img 
+                    src={project.imageUrl} 
+                    alt={project.title}
+                    className="project-image w-full h-full object-contain"
+                  />
+                ) : (
+                  <div className="project-image w-full h-full bg-gradient-to-br from-green-400/20 to-green-600/20 flex items-center justify-center text-4xl font-bold text-green-400">
+                    {project.title.charAt(0)}
+                  </div>
+                )}
                 
                 {/* Overlay */}
                 <div className="project-overlay absolute inset-0 bg-black/70 opacity-0 flex items-center justify-center">

@@ -353,6 +353,7 @@ export function AdminProvider({ children }) {
       dispatch({ type: ActionTypes.SET_SKILLS, payload: response.data });
       return { success: true, data: response.data };
     } catch (error) {
+      console.error('Error fetching skills:', error);
       return { success: false, error: error.response?.data?.error || 'Failed to fetch skills' };
     }
   };

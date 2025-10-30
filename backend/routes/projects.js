@@ -1,8 +1,12 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const { body, validationResult } = require('express-validator');
+const multer = require('multer');
+const cloudinary = require('../config/cloudinary');
 const router = express.Router();
 const prisma = new PrismaClient();
+
+const upload = multer({ storage: multer.memoryStorage() });
 
 // GET /api/projects - Get all projects
 router.get('/', async (req, res) => {
@@ -139,6 +143,35 @@ router.put('/:id', async (req, res) => {
   } catch (error) {
     console.error('Error updating project:', error);
     res.status(500).json({ error: 'Failed to update project' });
+  }
+});
+
+// POST /api/projects/upload - Upload project image
+router.post('/upload', upload.single('projectImage'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    const result = await cloudinary.uploader.upload_stream(
+      {
+        resource_type: 'image',
+        folder: 'portfolio/projects',
+        transformation: [{ width: 800, height: 600, crop: 'fill' }]
+      },
+      (error, result) => {
+        if (error) {
+          console.error('Cloudinary upload error:', error);
+          return res.status(500).json({ error: 'Failed to upload to Cloudinary' });
+        }
+        res.json({ imageUrl: result.secure_url });
+      }
+    );
+
+    result.end(req.file.buffer);
+  } catch (error) {
+    console.error('Error uploading project image:', error);
+    res.status(500).json({ error: 'Failed to upload project image' });
   }
 });
 

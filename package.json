@@ -7,28 +7,26 @@
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:frontend": "cd frontend && npm run dev",
     "dev:backend": "cd backend && npm run dev",
-    "build": "npm --prefix frontend install --omit=dev && npm --prefix frontend run build",
-    "prestart": "npm --prefix backend install --omit=dev",
+    "build": "cd frontend && npm run build",
     "start": "cd backend && npm start",
-    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install",
+    "install:all": "npm install && cd frontend && npm install && cd backend && npm install",
     "setup": "cd backend && npm run setup",
-    "setup:admin": "cd backend && npm run setup:admin",
-    "seed": "cd backend && npm run seed"
+    "deploy:backend": "cd backend && vercel --prod",
+    "deploy:frontend": "cd frontend && vercel --prod",
+    "deploy": "npm run deploy:backend && npm run deploy:frontend"
   },
-  "postinstall": "npm --prefix backend install --omit=dev && npm --prefix frontend install",
   "keywords": [
     "portfolio",
     "react",
     "gsap",
     "threejs",
-    "express"
+    "express",
+    "mongodb",
+    "cloudinary"
   ],
   "author": "Dhiraj Pandit",
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^8.2.2"
-  },
-  "dependencies": {
-    "multer": "^2.0.2"
   }
 }

@@ -150,17 +150,23 @@ router.get('/user/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
 
-    const userSkills = await prisma.userSkill.findMany({
-      where: { userId },
-      include: {
-        skill: true
-      },
-      orderBy: {
-        skill: {
-          name: 'asc'
+    let userSkills = [];
+    try {
+      userSkills = await prisma.userSkill.findMany({
+        where: { userId },
+        include: {
+          skill: true
+        },
+        orderBy: {
+          skill: {
+            name: 'asc'
+          }
         }
-      }
-    });
+      });
+    } catch (dbError) {
+      console.log('Database error fetching user skills:', dbError.message);
+      return res.json([]);
+    }
 
     const skillsWithDetails = userSkills.map(us => ({
       id: us.id,
@@ -174,7 +180,7 @@ router.get('/user/:userId', async (req, res) => {
     res.json(skillsWithDetails);
   } catch (error) {
     console.error('Error fetching user skills:', error);
-    res.status(500).json({ error: 'Failed to fetch user skills' });
+    res.json([]);
   }
 });
 
@@ -182,36 +188,42 @@ router.get('/user/:userId', async (req, res) => {
 router.post('/user/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    const { skillIds } = req.body; // Array of skillId strings OR objects with skillId
+    const { skillIds } = req.body;
 
     if (!Array.isArray(skillIds)) {
       return res.status(400).json({ error: 'skillIds must be an array' });
     }
 
     // Remove existing user skills
-    await prisma.userSkill.deleteMany({
-      where: { userId }
-    });
+    try {
+      await prisma.userSkill.deleteMany({ where: { userId } });
+    } catch (deleteError) {
+      console.log('Delete error (continuing):', deleteError.message);
+    }
 
-    // Add new user skills
-    const normalized = skillIds.map((s) => (typeof s === 'string' ? { skillId: s } : { skillId: s.skillId }));
-    const userSkills = await Promise.all(
-      normalized.map(({ skillId }) =>
-        prisma.userSkill.create({
+    // Add new user skills with error handling
+    const skillsWithDetails = [];
+    const normalized = skillIds.map((s) => (typeof s === 'string' ? s : s.skillId));
+    
+    for (const skillId of normalized) {
+      try {
+        const userSkill = await prisma.userSkill.create({
           data: { userId, skillId },
           include: { skill: true }
-        })
-      )
-    );
-
-    const skillsWithDetails = userSkills.map(us => ({
-      id: us.id,
-      name: us.skill.name,
-      logoUrl: us.skill.logoUrl,
-      logoSvg: us.skill.logoSvg,
-      category: us.skill.category,
-      skillId: us.skillId
-    }));
+        });
+        
+        skillsWithDetails.push({
+          id: userSkill.id,
+          name: userSkill.skill.name,
+          logoUrl: userSkill.skill.logoUrl,
+          logoSvg: userSkill.skill.logoSvg,
+          category: userSkill.skill.category,
+          skillId: userSkill.skillId
+        });
+      } catch (createError) {
+        console.error(`Error creating skill ${skillId}:`, createError.message);
+      }
+    }
 
     res.json(skillsWithDetails);
   } catch (error) {

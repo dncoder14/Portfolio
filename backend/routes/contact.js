@@ -5,6 +5,25 @@ const nodemailer = require('nodemailer');
 const router = express.Router();
 const prisma = new PrismaClient();
 
+// Middleware to verify JWT token for admin routes
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ error: 'Access token required' });
+  }
+
+  const jwt = require('jsonwebtoken');
+  jwt.verify(token, process.env.JWT_SECRET_KEY, (err, user) => {
+    if (err) {
+      return res.status(403).json({ error: 'Invalid or expired token' });
+    }
+    req.user = user;
+    next();
+  });
+};
+
 // Create nodemailer transporter with improved configuration
 const createTransporter = () => {
   const config = {
@@ -158,7 +177,7 @@ router.post('/', [
 });
 
 // GET /api/contact - Get all contact messages (Admin only)
-router.get('/', async (req, res) => {
+router.get('/', authenticateToken, async (req, res) => {
   try {
     const contacts = await prisma.contact.findMany({
       orderBy: {
@@ -174,7 +193,7 @@ router.get('/', async (req, res) => {
 });
 
 // PUT /api/contact/:id/read - Mark contact as read (Admin only)
-router.put('/:id/read', async (req, res) => {
+router.put('/:id/read', authenticateToken, async (req, res) => {
   try {
     const contact = await prisma.contact.update({
       where: {

@@ -21,29 +21,25 @@ router.get('/', async (req, res) => {
             title: 'Full Stack Web Development',
             organization: 'freeCodeCamp',
             date: new Date('2023-06-15'),
-            certificateUrl: 'https://freecodecamp.org/certification/dhiraj-pandit/full-stack',
-            imageUrl: '/images/certificates/fcc-fullstack.jpg'
+            certificateUrl: 'https://freecodecamp.org/certification/dhiraj-pandit/full-stack'
           },
           {
             title: 'React Developer Certification',
             organization: 'Meta (Facebook)',
             date: new Date('2023-08-20'),
-            certificateUrl: 'https://coursera.org/verify/1234567890',
-            imageUrl: '/images/certificates/meta-react.jpg'
+            certificateUrl: 'https://coursera.org/verify/1234567890'
           },
           {
             title: 'AWS Cloud Practitioner',
             organization: 'Amazon Web Services',
             date: new Date('2023-10-10'),
-            certificateUrl: 'https://aws.amazon.com/verification/1234567890',
-            imageUrl: '/images/certificates/aws-practitioner.jpg'
+            certificateUrl: 'https://aws.amazon.com/verification/1234567890'
           },
           {
             title: 'JavaScript Algorithms and Data Structures',
             organization: 'freeCodeCamp',
             date: new Date('2023-04-12'),
-            certificateUrl: 'https://freecodecamp.org/certification/dhiraj-pandit/javascript-algorithms',
-            imageUrl: '/images/certificates/fcc-javascript.jpg'
+            certificateUrl: 'https://freecodecamp.org/certification/dhiraj-pandit/javascript-algorithms'
           }
         ]
       });
@@ -95,15 +91,14 @@ router.post('/', [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { title, organization, date, certificateUrl, imageUrl } = req.body;
+    const { title, organization, date, certificateUrl } = req.body;
 
     const certificate = await prisma.certificate.create({
       data: {
         title,
         organization,
         date: new Date(date),
-        certificateUrl,
-        imageUrl
+        certificateUrl
       }
     });
 
@@ -117,7 +112,7 @@ router.post('/', [
 // PUT /api/certificates/:id - Update certificate (Admin only)
 router.put('/:id', async (req, res) => {
   try {
-    const { title, organization, date, certificateUrl, imageUrl } = req.body;
+    const { title, organization, date, certificateUrl } = req.body;
 
     const certificate = await prisma.certificate.update({
       where: {
@@ -127,8 +122,7 @@ router.put('/:id', async (req, res) => {
         title,
         organization,
         date: new Date(date),
-        certificateUrl,
-        imageUrl
+        certificateUrl
       }
     });
 

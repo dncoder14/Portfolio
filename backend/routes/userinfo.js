@@ -3,6 +3,7 @@ const { PrismaClient } = require('@prisma/client');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const cloudinary = require('../config/cloudinary');
 const router = express.Router();
 const prisma = new PrismaClient();
 
@@ -60,19 +61,7 @@ router.get('/', async (req, res) => {
           socialLinks: {
             linkedin: 'https://linkedin.com/in/dhiraj-pandit',
             github: 'https://github.com/dhiraj-pandit'
-          },
-          skills: [
-            { name: 'React', icon: 'react', level: 90 },
-            { name: 'JavaScript', icon: 'javascript', level: 95 },
-            { name: 'Node.js', icon: 'nodejs', level: 85 },
-            { name: 'Python', icon: 'python', level: 80 },
-            { name: 'MySQL', icon: 'mysql', level: 85 },
-            { name: 'MongoDB', icon: 'mongodb', level: 75 },
-            { name: 'Tailwind CSS', icon: 'tailwind', level: 90 },
-            { name: 'GSAP', icon: 'gsap', level: 85 },
-            { name: 'Three.js', icon: 'threejs', level: 70 },
-            { name: 'Prisma', icon: 'prisma', level: 80 }
-          ]
+          }
         }
       });
       return res.json(defaultUser);
@@ -105,33 +94,35 @@ router.post('/upload', upload.single('profileImage'), async (req, res) => {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    // Write image directly to frontend public directory
-    const frontendPublicDir = path.join(__dirname, '../../frontend/public/images');
-    if (!fs.existsSync(frontendPublicDir)) {
-      fs.mkdirSync(frontendPublicDir, { recursive: true });
-    }
-    
-    const frontendImagePath = path.join(frontendPublicDir, 'profile.jpg');
-    fs.writeFileSync(frontendImagePath, req.file.buffer);
-    
-    // Use relative URL that will be served from frontend
-    const profileImageUrl = '/images/profile.jpg';
-    
-    // Update user with new profile image
-    const updatedUser = await prisma.user.updateMany({
-      where: {
-        email: 'dhiraj.pandit@adypu.edu.in'
+    // Upload to Cloudinary
+    const result = await cloudinary.uploader.upload_stream(
+      {
+        resource_type: 'image',
+        folder: 'portfolio/profile',
+        public_id: 'profile_image',
+        overwrite: true
       },
-      data: {
-        profileImage: profileImageUrl
-      }
-    });
+      async (error, result) => {
+        if (error) {
+          console.error('Cloudinary upload error:', error);
+          return res.status(500).json({ error: 'Failed to upload to Cloudinary' });
+        }
 
-    res.json({ 
-      message: 'Profile image uploaded successfully', 
-      profileImageUrl,
-      updatedUser 
-    });
+        // Update user with Cloudinary URL
+        const updatedUser = await prisma.user.updateMany({
+          where: { email: 'dhiraj.pandit@adypu.edu.in' },
+          data: { profileImage: result.secure_url }
+        });
+
+        res.json({ 
+          message: 'Profile image uploaded successfully', 
+          profileImageUrl: result.secure_url,
+          updatedUser 
+        });
+      }
+    );
+
+    result.end(req.file.buffer);
   } catch (error) {
     console.error('Error uploading profile image:', error);
     res.status(500).json({ error: 'Failed to upload profile image' });
@@ -152,8 +143,13 @@ router.post('/upload-cv', upload.single('cvFile'), async (req, res) => {
 
     // Write CV directly to frontend public directory
     const frontendPublicDir = path.join(__dirname, '../../frontend/public/files');
-    if (!fs.existsSync(frontendPublicDir)) {
-      fs.mkdirSync(frontendPublicDir, { recursive: true });
+    try {
+      if (!fs.existsSync(frontendPublicDir)) {
+        fs.mkdirSync(frontendPublicDir, { recursive: true });
+      }
+    } catch (dirError) {
+      console.error('Error creating directory:', dirError);
+      return res.status(500).json({ error: 'Failed to create upload directory' });
     }
     
     const frontendCvPath = path.join(frontendPublicDir, 'cv.pdf');
@@ -186,12 +182,19 @@ router.post('/upload-cv', upload.single('cvFile'), async (req, res) => {
 // PUT /api/userinfo - Update user information
 router.put('/', async (req, res) => {
   try {
-    const { name, summary, location, profileImage, cvUrl, socialLinks, skills } = req.body;
+    const { name, summary, location, profileImage, cvUrl, socialLinks } = req.body;
     
     // Update user and return the full, updated record
     const updatedUser = await prisma.user.update({
       where: { email: 'dhiraj.pandit@adypu.edu.in' },
-      data: { name, summary, location, profileImage, cvUrl, socialLinks, skills }
+      data: { 
+        name, 
+        summary, 
+        location, 
+        profileImage, 
+        cvUrl, 
+        socialLinks 
+      }
     });
 
     res.json(updatedUser);

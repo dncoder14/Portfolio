@@ -12,8 +12,7 @@ const CertificatesManager = () => {
     title: '',
     organization: '',
     date: '',
-    certificateUrl: '',
-    imageUrl: ''
+    certificateUrl: ''
   })
   const certificatesRef = useRef()
 
@@ -42,8 +41,7 @@ const CertificatesManager = () => {
         title: certificate.title,
         organization: certificate.organization,
         date: certificate.date ? new Date(certificate.date).toISOString().split('T')[0] : '',
-        certificateUrl: certificate.certificateUrl || '',
-        imageUrl: certificate.imageUrl || ''
+        certificateUrl: certificate.certificateUrl || ''
       })
     } else {
       setEditingCertificate(null)
@@ -51,8 +49,7 @@ const CertificatesManager = () => {
         title: '',
         organization: '',
         date: '',
-        certificateUrl: '',
-        imageUrl: ''
+        certificateUrl: ''
       })
     }
     setIsPanelOpen(true)
@@ -65,8 +62,7 @@ const CertificatesManager = () => {
       title: '',
       organization: '',
       date: '',
-      certificateUrl: '',
-      imageUrl: ''
+      certificateUrl: ''
     })
   }
 
@@ -126,10 +122,6 @@ const CertificatesManager = () => {
       <div>
         <label className="block text-sm font-medium text-gray-300 mb-2">Certificate URL</label>
         <input type="url" value={formData.certificateUrl} onChange={(e) => setFormData({ ...formData, certificateUrl: e.target.value })} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400" />
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">Image URL</label>
-        <input type="url" value={formData.imageUrl} onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400" />
       </div>
       <div className="flex space-x-4 pt-2">
         <button type="submit" className="px-6 py-2 bg-green-400 hover:bg-green-500 text-black font-semibold rounded transition-colors duration-300">{editingCertificate ? 'Update' : 'Create'}</button>

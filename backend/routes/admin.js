@@ -142,12 +142,30 @@ router.post('/register', [
 // GET /api/admin/dashboard - Get dashboard stats (Protected)
 router.get('/dashboard', authenticateToken, async (req, res) => {
   try {
-    const [projectsCount, certificatesCount, contactsCount, unreadContactsCount] = await Promise.all([
-      prisma.project.count(),
-      prisma.certificate.count(),
-      prisma.contact.count(),
-      prisma.contact.count({ where: { read: false } })
-    ]);
+    // Try to get counts with fallback to 0 if collections don't exist
+    let projectsCount = 0;
+    let certificatesCount = 0;
+    let contactsCount = 0;
+    let unreadContactsCount = 0;
+
+    try {
+      projectsCount = await prisma.project.count();
+    } catch (e) {
+      console.log('Projects collection not accessible:', e.message);
+    }
+
+    try {
+      certificatesCount = await prisma.certificate.count();
+    } catch (e) {
+      console.log('Certificates collection not accessible:', e.message);
+    }
+
+    try {
+      contactsCount = await prisma.contact.count();
+      unreadContactsCount = await prisma.contact.count({ where: { read: false } });
+    } catch (e) {
+      console.log('Contacts collection not accessible:', e.message);
+    }
 
     res.json({
       stats: {

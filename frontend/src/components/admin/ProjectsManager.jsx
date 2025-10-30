@@ -18,6 +18,8 @@ const ProjectsManager = () => {
     featured: false
   })
   const [newTech, setNewTech] = useState('')
+  const [imageFile, setImageFile] = useState(null)
+  const [uploading, setUploading] = useState(false)
   const projectsRef = useRef()
 
   useEffect(() => {
@@ -68,6 +70,7 @@ const ProjectsManager = () => {
   const handleCloseModal = () => {
     setIsPanelOpen(false)
     setEditingProject(null)
+    setImageFile(null)
     setFormData({
       title: '',
       description: '',
@@ -79,13 +82,49 @@ const ProjectsManager = () => {
     })
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
+  const handleImageUpload = async (file) => {
+    const formData = new FormData()
+    formData.append('projectImage', file)
     
     try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/projects/upload`, {
+        method: 'POST',
+        body: formData
+      })
+      
+      const data = await response.json()
+      if (response.ok) {
+        return data.imageUrl
+      } else {
+        throw new Error(data.error || 'Upload failed')
+      }
+    } catch (error) {
+      throw error
+    }
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setUploading(true)
+    
+    try {
+      let finalFormData = { ...formData }
+      
+      // Upload image if a new file is selected
+      if (imageFile) {
+        try {
+          const imageUrl = await handleImageUpload(imageFile)
+          finalFormData.imageUrl = imageUrl
+        } catch (error) {
+          toast.error('Failed to upload image: ' + error.message)
+          setUploading(false)
+          return
+        }
+      }
+      
       const result = editingProject 
-        ? await updateProject(editingProject.id, formData)
-        : await createProject(formData)
+        ? await updateProject(editingProject.id, finalFormData)
+        : await createProject(finalFormData)
       
       if (result.success) {
         toast.success(editingProject ? 'Project updated successfully!' : 'Project created successfully!')
@@ -95,6 +134,8 @@ const ProjectsManager = () => {
       }
     } catch (error) {
       toast.error('An error occurred')
+    } finally {
+      setUploading(false)
     }
   }
 
@@ -148,19 +189,30 @@ const ProjectsManager = () => {
           className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400 resize-none"
         />
       </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-2">Project Image</label>
+        <input 
+          type="file" 
+          accept="image/*"
+          onChange={(e) => setImageFile(e.target.files[0])}
+          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:bg-green-400 file:text-black hover:file:bg-green-500"
+        />
+        {formData.imageUrl && (
+          <div className="mt-2">
+            <img src={formData.imageUrl} alt="Current" className="w-20 h-20 object-cover rounded" />
+            <p className="text-xs text-gray-400 mt-1">Current image</p>
+          </div>
+        )}
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">Image URL</label>
-          <input type="url" value={formData.imageUrl} onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400" />
-        </div>
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">GitHub URL</label>
           <input type="url" value={formData.githubUrl} onChange={(e) => setFormData({ ...formData, githubUrl: e.target.value })} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400" />
         </div>
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">Demo URL</label>
-        <input type="url" value={formData.demoUrl} onChange={(e) => setFormData({ ...formData, demoUrl: e.target.value })} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400" />
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-2">Demo URL</label>
+          <input type="url" value={formData.demoUrl} onChange={(e) => setFormData({ ...formData, demoUrl: e.target.value })} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400" />
+        </div>
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-300 mb-2">Technologies</label>
@@ -182,7 +234,13 @@ const ProjectsManager = () => {
         <label htmlFor="featured" className="ml-2 text-sm text-gray-300">Featured Project</label>
       </div>
       <div className="flex space-x-4 pt-2">
-        <button type="submit" className="px-6 py-2 bg-green-400 hover:bg-green-500 text-black font-semibold rounded transition-colors duration-300">{editingProject ? 'Update' : 'Create'}</button>
+        <button 
+          type="submit" 
+          disabled={uploading}
+          className="px-6 py-2 bg-green-400 hover:bg-green-500 disabled:bg-gray-500 text-black font-semibold rounded transition-colors duration-300"
+        >
+          {uploading ? 'Uploading...' : (editingProject ? 'Update' : 'Create')}
+        </button>
         <button type="button" onClick={handleCloseModal} className="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded transition-colors duration-300">Cancel</button>
       </div>
     </form>
