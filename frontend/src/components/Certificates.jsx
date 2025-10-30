@@ -12,6 +12,7 @@ const Certificates = () => {
   const { certificates } = useApp()
 
   useEffect(() => {
+    
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: sectionRef.current,

@@ -4,11 +4,10 @@ import { Toaster } from 'react-hot-toast';
 import Lenis from 'lenis';
 
 // Context
-import { AppProvider } from './context/AppContext';
+import { AppProvider, useApp } from './context/AppContext';
 import { AdminProvider, useAdmin } from './context/AdminContext';
 
 // Components
-import Preloader from './components/Preloader';
 import Navigation from './components/Navigation';
 import Hero from './components/Hero';
 import About from './components/About';
@@ -17,53 +16,62 @@ import Projects from './components/Projects';
 import Certificates from './components/Certificates';
 import Contact from './components/Contact';
 import ScrollProgress from './components/ScrollProgress';
+import FullPageSkeleton from './components/FullPageSkeleton';
+import ErrorPage from './components/ErrorPage';
 
 // Admin Components
 import AdminLogin from './components/admin/AdminLogin';
 import AdminDashboard from './components/admin/AdminDashboard';
 
 function PortfolioApp() {
-  const [isLoading, setIsLoading] = useState(true);
+  const { allDataLoaded, hasErrors, fetchUserInfo, fetchProjects, fetchCertificates } = useApp();
+
+  console.log('PortfolioApp - allDataLoaded:', allDataLoaded, 'hasErrors:', hasErrors);
+
+  const handleRetry = () => {
+    window.location.reload();
+  };
 
   useEffect(() => {
-    // Initialize Lenis smooth scroll
-    const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      direction: 'vertical',
-      gestureDirection: 'vertical',
-      smooth: true,
-      mouseMultiplier: 1,
-      smoothTouch: false,
-      touchMultiplier: 2,
-      infinite: false,
-    });
+    // Initialize Lenis smooth scroll only when all data is loaded
+    if (allDataLoaded) {
+      const lenis = new Lenis({
+        duration: 1.2,
+        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        direction: 'vertical',
+        gestureDirection: 'vertical',
+        smooth: true,
+        mouseMultiplier: 1,
+        smoothTouch: false,
+        touchMultiplier: 2,
+        infinite: false,
+      });
 
-    // GSAP ScrollTrigger integration
-    function raf(time) {
-      lenis.raf(time);
+      // GSAP ScrollTrigger integration
+      function raf(time) {
+        lenis.raf(time);
+        requestAnimationFrame(raf);
+      }
       requestAnimationFrame(raf);
+
+      return () => {
+        lenis.destroy();
+      };
     }
-    requestAnimationFrame(raf);
+  }, [allDataLoaded]);
 
-    // Preloader timeout
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 3000);
+  // Show error page if there are errors
+  if (allDataLoaded && hasErrors) {
+    return <ErrorPage onRetry={handleRetry} />;
+  }
 
-    return () => {
-      clearTimeout(timer);
-      lenis.destroy();
-    };
-  }, []);
-
-  if (isLoading) {
-    return <Preloader />;
+  // Show full-page skeleton until all data is loaded
+  if (!allDataLoaded) {
+    return <FullPageSkeleton />;
   }
 
   return (
-    <AppProvider>
-      <div className="App relative min-h-screen bg-black text-white overflow-x-hidden">
+    <div className="App relative min-h-screen bg-black text-white overflow-x-hidden">
         <Toaster
           position="top-right"
           toastOptions={{
@@ -101,7 +109,6 @@ function PortfolioApp() {
           <Contact />
         </main>
       </div>
-    </AppProvider>
   );
 }
 
@@ -152,7 +159,11 @@ function App() {
     <Router>
       <AdminProvider>
         <Routes>
-          <Route path="/" element={<PortfolioApp />} />
+          <Route path="/" element={
+            <AppProvider>
+              <PortfolioApp />
+            </AppProvider>
+          } />
           <Route path="/admin" element={<AdminLoginApp />} />
           <Route path="/admin/dashboard" element={<AdminDashboardApp />} />
         </Routes>
