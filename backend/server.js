@@ -17,6 +17,7 @@ const allowedOrigins = [
   'https://portfolio-eex9202en-dncoder14s-projects.vercel.app',
   'https://portfolio-git-main-dncoder14s-projects.vercel.app',
   'https://portfolio-dncoder14s-projects.vercel.app',
+  'https://portfolio-frontend-f0oa.onrender.com',
   'http://localhost:3000',
   'http://localhost:3001',
   'http://localhost:3004',
