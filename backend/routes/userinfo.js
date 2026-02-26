@@ -136,43 +136,39 @@ router.post('/upload-cv', upload.single('cvFile'), async (req, res) => {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    // Check if it's a PDF file
     if (req.file.mimetype !== 'application/pdf') {
       return res.status(400).json({ error: 'Only PDF files are allowed for CV upload' });
     }
 
-    // Write CV directly to frontend public directory
-    const frontendPublicDir = path.join(__dirname, '../../frontend/public/files');
-    try {
-      if (!fs.existsSync(frontendPublicDir)) {
-        fs.mkdirSync(frontendPublicDir, { recursive: true });
-      }
-    } catch (dirError) {
-      console.error('Error creating directory:', dirError);
-      return res.status(500).json({ error: 'Failed to create upload directory' });
-    }
-    
-    const frontendCvPath = path.join(frontendPublicDir, 'cv.pdf');
-    fs.writeFileSync(frontendCvPath, req.file.buffer);
-    
-    // Use relative URL that will be served from frontend
-    const cvUrl = '/files/cv.pdf';
-    
-    // Update user with new CV
-    const updatedUser = await prisma.user.updateMany({
-      where: {
-        email: 'dhiraj.pandit@adypu.edu.in'
+    // Upload to Cloudinary
+    const result = await cloudinary.uploader.upload_stream(
+      {
+        resource_type: 'raw',
+        folder: 'portfolio/cv',
+        public_id: 'cv',
+        overwrite: true,
+        format: 'pdf'
       },
-      data: {
-        cvUrl: cvUrl
-      }
-    });
+      async (error, result) => {
+        if (error) {
+          console.error('Cloudinary upload error:', error);
+          return res.status(500).json({ error: 'Failed to upload to Cloudinary' });
+        }
 
-    res.json({ 
-      message: 'CV uploaded successfully', 
-      cvUrl,
-      updatedUser 
-    });
+        const updatedUser = await prisma.user.updateMany({
+          where: { email: 'dhiraj.pandit@adypu.edu.in' },
+          data: { cvUrl: result.secure_url }
+        });
+
+        res.json({ 
+          message: 'CV uploaded successfully', 
+          cvUrl: result.secure_url,
+          updatedUser 
+        });
+      }
+    );
+
+    result.end(req.file.buffer);
   } catch (error) {
     console.error('Error uploading CV:', error);
     res.status(500).json({ error: 'Failed to upload CV' });

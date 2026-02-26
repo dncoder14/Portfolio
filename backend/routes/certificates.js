@@ -1,8 +1,12 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const { body, validationResult } = require('express-validator');
+const multer = require('multer');
+const cloudinary = require('../config/cloudinary');
 const router = express.Router();
 const prisma = new PrismaClient();
+
+const upload = multer({ storage: multer.memoryStorage() });
 
 // GET /api/certificates - Get all certificates
 router.get('/', async (req, res) => {
@@ -91,13 +95,14 @@ router.post('/', [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { title, organization, date, certificateUrl } = req.body;
+    const { title, organization, date, imageUrl, certificateUrl } = req.body;
 
     const certificate = await prisma.certificate.create({
       data: {
         title,
         organization,
         date: new Date(date),
+        imageUrl,
         certificateUrl
       }
     });
@@ -112,7 +117,7 @@ router.post('/', [
 // PUT /api/certificates/:id - Update certificate (Admin only)
 router.put('/:id', async (req, res) => {
   try {
-    const { title, organization, date, certificateUrl } = req.body;
+    const { title, organization, date, imageUrl, certificateUrl } = req.body;
 
     const certificate = await prisma.certificate.update({
       where: {
@@ -122,6 +127,7 @@ router.put('/:id', async (req, res) => {
         title,
         organization,
         date: new Date(date),
+        imageUrl,
         certificateUrl
       }
     });
@@ -146,6 +152,35 @@ router.delete('/:id', async (req, res) => {
   } catch (error) {
     console.error('Error deleting certificate:', error);
     res.status(500).json({ error: 'Failed to delete certificate' });
+  }
+});
+
+// POST /api/certificates/upload - Upload certificate image
+router.post('/upload', upload.single('certificateImage'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    const result = await cloudinary.uploader.upload_stream(
+      {
+        resource_type: 'image',
+        folder: 'portfolio/certificates',
+        transformation: [{ width: 1000, height: 700, crop: 'fill' }]
+      },
+      (error, result) => {
+        if (error) {
+          console.error('Cloudinary upload error:', error);
+          return res.status(500).json({ error: 'Failed to upload to Cloudinary' });
+        }
+        res.json({ imageUrl: result.secure_url });
+      }
+    );
+
+    result.end(req.file.buffer);
+  } catch (error) {
+    console.error('Error uploading certificate image:', error);
+    res.status(500).json({ error: 'Failed to upload certificate image' });
   }
 });
 
