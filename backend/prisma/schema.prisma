@@ -50,11 +50,29 @@ model Certificate {
   title          String
   organization   String
   date           DateTime
+  imageUrl       String?
   certificateUrl String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   @@map("certificates")
+}
+
+model Experience {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  company      String
+  position     String
+  startDate    DateTime
+  endDate      DateTime?
+  current      Boolean  @default(false)
+  description  String
+  technologies String[]
+  location     String?
+  companyLogo  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("experiences")
 }
 
 model Contact {
