@@ -12,8 +12,8 @@ async function seedData() {
       where: { email: 'dhiraj.pandit@adypu.edu.in' },
       update: {
         socialLinks: {
-          linkedin: 'https://linkedin.com/in/dhiraj-pandit',
-          github: 'https://github.com/dhiraj-pandit',
+          linkedin: 'https://www.linkedin.com/in/dhiraj-pandit-025062325/',
+          github: 'https://github.com/dncoder14',
           email: 'dhiraj.pandit@adypu.edu.in'
         }
       },
@@ -24,22 +24,10 @@ async function seedData() {
         location: 'Pune, India',
         profileImage: '/images/profile.jpg',
         socialLinks: {
-          linkedin: 'https://linkedin.com/in/dhiraj-pandit',
-          github: 'https://github.com/dhiraj-pandit',
+          linkedin: 'https://www.linkedin.com/in/dhiraj-pandit-025062325/',
+          github: 'https://github.com/dncoder14',
           email: 'dhiraj.pandit@adypu.edu.in'
-        },
-        skills: [
-          { name: 'React', icon: '⚛️', level: 90 },
-          { name: 'JavaScript', icon: '🟨', level: 95 },
-          { name: 'Node.js', icon: '🟢', level: 85 },
-          { name: 'Python', icon: '🐍', level: 80 },
-          { name: 'MySQL', icon: '🗄️', level: 85 },
-          { name: 'MongoDB', icon: '🍃', level: 75 },
-          { name: 'Tailwind CSS', icon: '🎨', level: 90 },
-          { name: 'GSAP', icon: '✨', level: 85 },
-          { name: 'Three.js', icon: '🎮', level: 70 },
-          { name: 'Prisma', icon: '🔧', level: 80 }
-        ]
+        }
       }
     })
 
@@ -84,8 +72,7 @@ async function seedData() {
           technologies: ['React', 'GSAP', 'Three.js', 'Tailwind CSS', 'Express'],
           featured: true
         }
-      ],
-      skipDuplicates: true
+      ]
     })
 
     console.log('✅ Sample projects created')
@@ -97,39 +84,38 @@ async function seedData() {
           title: 'Full Stack Web Development',
           organization: 'freeCodeCamp',
           date: new Date('2023-06-15'),
-          certificateUrl: 'https://freecodecamp.org/certification/dhiraj-pandit/full-stack',
-          imageUrl: '/images/certificates/fcc-fullstack.jpg'
+          imageUrl: '/images/certificates/freecodecamp.jpg',
+          certificateUrl: 'https://freecodecamp.org/certification/dhiraj-pandit/full-stack'
         },
         {
           title: 'React Developer Certification',
           organization: 'Meta (Facebook)',
           date: new Date('2023-08-20'),
-          certificateUrl: 'https://coursera.org/verify/1234567890',
-          imageUrl: '/images/certificates/meta-react.jpg'
+          imageUrl: '/images/certificates/meta.jpg',
+          certificateUrl: 'https://coursera.org/verify/1234567890'
         },
         {
           title: 'AWS Cloud Practitioner',
           organization: 'Amazon Web Services',
           date: new Date('2023-10-10'),
-          certificateUrl: 'https://aws.amazon.com/verification/1234567890',
-          imageUrl: '/images/certificates/aws-practitioner.jpg'
+          imageUrl: '/images/certificates/aws.jpg',
+          certificateUrl: 'https://aws.amazon.com/verification/1234567890'
         },
         {
           title: 'JavaScript Algorithms and Data Structures',
           organization: 'freeCodeCamp',
           date: new Date('2023-04-12'),
-          certificateUrl: 'https://freecodecamp.org/certification/dhiraj-pandit/javascript-algorithms',
-          imageUrl: '/images/certificates/fcc-javascript.jpg'
+          imageUrl: '/images/certificates/javascript.jpg',
+          certificateUrl: 'https://freecodecamp.org/certification/dhiraj-pandit/javascript-algorithms'
         },
         {
           title: 'Responsive Web Design',
           organization: 'freeCodeCamp',
           date: new Date('2023-02-28'),
-          certificateUrl: 'https://freecodecamp.org/certification/dhiraj-pandit/responsive-web-design',
-          imageUrl: '/images/certificates/fcc-responsive.jpg'
+          imageUrl: '/images/certificates/responsive.jpg',
+          certificateUrl: 'https://freecodecamp.org/certification/dhiraj-pandit/responsive-web-design'
         }
-      ],
-      skipDuplicates: true
+      ]
     })
 
     console.log('✅ Sample certificates created')
@@ -155,8 +141,7 @@ async function seedData() {
           message: 'Great portfolio! I love the animations and the overall design. Do you have experience with Next.js and TypeScript?',
           read: false
         }
-      ],
-      skipDuplicates: true
+      ]
     })
 
     console.log('✅ Sample contact messages created')
