@@ -20,6 +20,7 @@ const initialState = {
   error: null,
   projects: [],
   certificates: [],
+  experiences: [],
   contacts: [],
   userInfo: null,
   skills: [],
@@ -40,6 +41,7 @@ const ActionTypes = {
   LOGOUT: 'LOGOUT',
   SET_PROJECTS: 'SET_PROJECTS',
   SET_CERTIFICATES: 'SET_CERTIFICATES',
+  SET_EXPERIENCES: 'SET_EXPERIENCES',
   SET_CONTACTS: 'SET_CONTACTS',
   SET_USER_INFO: 'SET_USER_INFO',
   SET_STATS: 'SET_STATS',
@@ -52,6 +54,9 @@ const ActionTypes = {
   ADD_CERTIFICATE: 'ADD_CERTIFICATE',
   UPDATE_CERTIFICATE: 'UPDATE_CERTIFICATE',
   DELETE_CERTIFICATE: 'DELETE_CERTIFICATE',
+  ADD_EXPERIENCE: 'ADD_EXPERIENCE',
+  UPDATE_EXPERIENCE: 'UPDATE_EXPERIENCE',
+  DELETE_EXPERIENCE: 'DELETE_EXPERIENCE',
   UPDATE_USER_INFO: 'UPDATE_USER_INFO'
 };
 
@@ -83,6 +88,8 @@ function adminReducer(state, action) {
       return { ...state, projects: action.payload, isLoading: false };
     case ActionTypes.SET_CERTIFICATES:
       return { ...state, certificates: action.payload, isLoading: false };
+    case ActionTypes.SET_EXPERIENCES:
+      return { ...state, experiences: action.payload, isLoading: false };
     case ActionTypes.SET_CONTACTS:
       return { ...state, contacts: action.payload, isLoading: false };
     case ActionTypes.SET_USER_INFO:
@@ -122,6 +129,20 @@ function adminReducer(state, action) {
       return {
         ...state,
         certificates: state.certificates.filter(c => c.id !== action.payload)
+      };
+    case ActionTypes.ADD_EXPERIENCE:
+      return { ...state, experiences: [...state.experiences, action.payload] };
+    case ActionTypes.UPDATE_EXPERIENCE:
+      return {
+        ...state,
+        experiences: state.experiences.map(e =>
+          e.id === action.payload.id ? action.payload : e
+        )
+      };
+    case ActionTypes.DELETE_EXPERIENCE:
+      return {
+        ...state,
+        experiences: state.experiences.filter(e => e.id !== action.payload)
       };
     case ActionTypes.UPDATE_USER_INFO:
       return { ...state, userInfo: action.payload };
@@ -209,10 +230,11 @@ export function AdminProvider({ children }) {
   // Fetch dashboard data
   const fetchDashboardData = async () => {
     try {
-      const [statsRes, projectsRes, certificatesRes, contactsRes, userInfoRes, skillsRes] = await Promise.all([
+      const [statsRes, projectsRes, certificatesRes, experiencesRes, contactsRes, userInfoRes, skillsRes] = await Promise.all([
         api.get('/admin/dashboard'),
         api.get('/projects'),
         api.get('/certificates'),
+        api.get('/experience'),
         api.get('/contact'),
         api.get('/userinfo'),
         api.get('/skills')
@@ -221,6 +243,7 @@ export function AdminProvider({ children }) {
       dispatch({ type: ActionTypes.SET_STATS, payload: statsRes.data.stats });
       dispatch({ type: ActionTypes.SET_PROJECTS, payload: projectsRes.data });
       dispatch({ type: ActionTypes.SET_CERTIFICATES, payload: certificatesRes.data });
+      dispatch({ type: ActionTypes.SET_EXPERIENCES, payload: experiencesRes.data });
       dispatch({ type: ActionTypes.SET_CONTACTS, payload: contactsRes.data });
       dispatch({ type: ActionTypes.SET_USER_INFO, payload: userInfoRes.data });
       dispatch({ type: ActionTypes.SET_SKILLS, payload: skillsRes.data });
@@ -295,6 +318,37 @@ export function AdminProvider({ children }) {
       return { success: true };
     } catch (error) {
       return { success: false, error: error.response?.data?.error || 'Failed to delete certificate' };
+    }
+  };
+
+  // Experience CRUD operations
+  const createExperience = async (experienceData) => {
+    try {
+      const response = await api.post('/experience', experienceData);
+      dispatch({ type: ActionTypes.ADD_EXPERIENCE, payload: response.data });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.error || 'Failed to create experience' };
+    }
+  };
+
+  const updateExperience = async (id, experienceData) => {
+    try {
+      const response = await api.put(`/experience/${id}`, experienceData);
+      dispatch({ type: ActionTypes.UPDATE_EXPERIENCE, payload: response.data });
+      return { success: true, data: response.data };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.error || 'Failed to update experience' };
+    }
+  };
+
+  const deleteExperience = async (id) => {
+    try {
+      await api.delete(`/experience/${id}`);
+      dispatch({ type: ActionTypes.DELETE_EXPERIENCE, payload: id });
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.response?.data?.error || 'Failed to delete experience' };
     }
   };
 
@@ -443,6 +497,9 @@ export function AdminProvider({ children }) {
     createCertificate,
     updateCertificate,
     deleteCertificate,
+    createExperience,
+    updateExperience,
+    deleteExperience,
     updateUserInfo,
     markContactAsRead,
     createSkill,

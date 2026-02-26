@@ -11,16 +11,19 @@ const initialState = {
   userInfo: null,
   projects: [],
   certificates: [],
+  experiences: [],
   isLoading: false,
   loadingStates: {
     userInfo: true,
     projects: true,
     certificates: true,
+    experiences: true,
   },
   errorStates: {
     userInfo: false,
     projects: false,
     certificates: false,
+    experiences: false,
   },
   error: null,
   currentSection: 'hero',
@@ -35,9 +38,11 @@ const ActionTypes = {
   SET_USER_INFO: 'SET_USER_INFO',
   SET_PROJECTS: 'SET_PROJECTS',
   SET_CERTIFICATES: 'SET_CERTIFICATES',
+  SET_EXPERIENCES: 'SET_EXPERIENCES',
   SET_USER_INFO_ERROR: 'SET_USER_INFO_ERROR',
   SET_PROJECTS_ERROR: 'SET_PROJECTS_ERROR',
   SET_CERTIFICATES_ERROR: 'SET_CERTIFICATES_ERROR',
+  SET_EXPERIENCES_ERROR: 'SET_EXPERIENCES_ERROR',
   SET_CURRENT_SECTION: 'SET_CURRENT_SECTION',
   TOGGLE_MENU: 'TOGGLE_MENU',
   CLOSE_MENU: 'CLOSE_MENU',
@@ -68,6 +73,12 @@ function appReducer(state, action) {
         certificates: action.payload, 
         loadingStates: { ...state.loadingStates, certificates: false }
       }
+    case ActionTypes.SET_EXPERIENCES:
+      return { 
+        ...state, 
+        experiences: action.payload, 
+        loadingStates: { ...state.loadingStates, experiences: false }
+      }
     case ActionTypes.SET_USER_INFO_ERROR:
       return { 
         ...state, 
@@ -85,6 +96,12 @@ function appReducer(state, action) {
         ...state, 
         errorStates: { ...state.errorStates, certificates: true },
         loadingStates: { ...state.loadingStates, certificates: false }
+      }
+    case ActionTypes.SET_EXPERIENCES_ERROR:
+      return { 
+        ...state, 
+        errorStates: { ...state.errorStates, experiences: true },
+        loadingStates: { ...state.loadingStates, experiences: false }
       }
     case ActionTypes.SET_CURRENT_SECTION:
       return { ...state, currentSection: action.payload }
@@ -131,6 +148,17 @@ export function AppProvider({ children }) {
     } catch (error) {
       console.error('Error fetching certificates:', error)
       dispatch({ type: ActionTypes.SET_CERTIFICATES_ERROR })
+    }
+  }
+
+  // Fetch experiences
+  const fetchExperiences = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/experience`, { timeout: 30000 })
+      dispatch({ type: ActionTypes.SET_EXPERIENCES, payload: response.data })
+    } catch (error) {
+      console.error('Error fetching experiences:', error)
+      dispatch({ type: ActionTypes.SET_EXPERIENCES_ERROR })
     }
   }
 
@@ -187,6 +215,7 @@ export function AppProvider({ children }) {
           fetchUserInfo(),
           fetchProjects(),
           fetchCertificates(),
+          fetchExperiences(),
         ])
         
         console.log('Data fetch completed')
@@ -208,6 +237,7 @@ export function AppProvider({ children }) {
     fetchUserInfo,
     fetchProjects,
     fetchCertificates,
+    fetchExperiences,
     submitContactForm,
     setCurrentSection,
     toggleMenu,
