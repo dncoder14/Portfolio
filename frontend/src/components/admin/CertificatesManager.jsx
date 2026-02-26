@@ -12,8 +12,11 @@ const CertificatesManager = () => {
     title: '',
     organization: '',
     date: '',
+    imageUrl: '',
     certificateUrl: ''
   })
+  const [imageFile, setImageFile] = useState(null)
+  const [uploading, setUploading] = useState(false)
   const certificatesRef = useRef()
 
   useEffect(() => {
@@ -41,6 +44,7 @@ const CertificatesManager = () => {
         title: certificate.title,
         organization: certificate.organization,
         date: certificate.date ? new Date(certificate.date).toISOString().split('T')[0] : '',
+        imageUrl: certificate.imageUrl || '',
         certificateUrl: certificate.certificateUrl || ''
       })
     } else {
@@ -49,30 +53,70 @@ const CertificatesManager = () => {
         title: '',
         organization: '',
         date: '',
+        imageUrl: '',
         certificateUrl: ''
       })
     }
+    setImageFile(null)
     setIsPanelOpen(true)
   }
 
   const handleCloseModal = () => {
     setIsPanelOpen(false)
     setEditingCertificate(null)
+    setImageFile(null)
     setFormData({
       title: '',
       organization: '',
       date: '',
+      imageUrl: '',
       certificateUrl: ''
     })
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
+  const handleImageUpload = async (file) => {
+    const formData = new FormData()
+    formData.append('certificateImage', file)
     
     try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/certificates/upload`, {
+        method: 'POST',
+        body: formData
+      })
+      
+      const data = await response.json()
+      if (response.ok) {
+        return data.imageUrl
+      } else {
+        throw new Error(data.error || 'Upload failed')
+      }
+    } catch (error) {
+      throw error
+    }
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setUploading(true)
+    
+    try {
+      let finalFormData = { ...formData }
+      
+      // Upload image if a new file is selected
+      if (imageFile) {
+        try {
+          const imageUrl = await handleImageUpload(imageFile)
+          finalFormData.imageUrl = imageUrl
+        } catch (error) {
+          toast.error('Failed to upload image: ' + error.message)
+          setUploading(false)
+          return
+        }
+      }
+      
       const result = editingCertificate 
-        ? await updateCertificate(editingCertificate.id, formData)
-        : await createCertificate(formData)
+        ? await updateCertificate(editingCertificate.id, finalFormData)
+        : await createCertificate(finalFormData)
       
       if (result.success) {
         toast.success(editingCertificate ? 'Certificate updated successfully!' : 'Certificate created successfully!')
@@ -82,6 +126,8 @@ const CertificatesManager = () => {
       }
     } catch (error) {
       toast.error('An error occurred')
+    } finally {
+      setUploading(false)
     }
   }
 
@@ -120,11 +166,32 @@ const CertificatesManager = () => {
         <input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} required className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400" />
       </div>
       <div>
+        <label className="block text-sm font-medium text-gray-300 mb-2">Certificate Image</label>
+        <input 
+          type="file" 
+          accept="image/*"
+          onChange={(e) => setImageFile(e.target.files[0])}
+          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:bg-green-400 file:text-black hover:file:bg-green-500"
+        />
+        {formData.imageUrl && (
+          <div className="mt-2">
+            <img src={formData.imageUrl} alt="Current" className="w-20 h-20 object-cover rounded" />
+            <p className="text-xs text-gray-400 mt-1">Current image</p>
+          </div>
+        )}
+      </div>
+      <div>
         <label className="block text-sm font-medium text-gray-300 mb-2">Certificate URL</label>
         <input type="url" value={formData.certificateUrl} onChange={(e) => setFormData({ ...formData, certificateUrl: e.target.value })} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-green-400" />
       </div>
       <div className="flex space-x-4 pt-2">
-        <button type="submit" className="px-6 py-2 bg-green-400 hover:bg-green-500 text-black font-semibold rounded transition-colors duration-300">{editingCertificate ? 'Update' : 'Create'}</button>
+        <button 
+          type="submit" 
+          disabled={uploading}
+          className="px-6 py-2 bg-green-400 hover:bg-green-500 disabled:bg-gray-500 text-black font-semibold rounded transition-colors duration-300"
+        >
+          {uploading ? 'Uploading...' : (editingCertificate ? 'Update' : 'Create')}
+        </button>
         <button type="button" onClick={handleCloseModal} className="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded transition-colors duration-300">Cancel</button>
       </div>
     </form>

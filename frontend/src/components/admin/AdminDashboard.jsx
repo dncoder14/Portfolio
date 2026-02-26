@@ -3,6 +3,7 @@ import { gsap } from 'gsap'
 import { useAdmin } from '../../context/AdminContext'
 import ProjectsManager from './ProjectsManager'
 import CertificatesManager from './CertificatesManager'
+import ExperienceManager from './ExperienceManager'
 import ContactsManager from './ContactsManager'
 import UserInfoManager from './UserInfoManager'
 import ChangePassword from './ChangePassword'
@@ -53,6 +54,7 @@ const AdminDashboard = () => {
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
     { id: 'projects', label: 'Projects', icon: '💼' },
+    { id: 'experience', label: 'Experience', icon: '💼' },
     { id: 'certificates', label: 'Certificates', icon: '🏆' },
     { id: 'contacts', label: 'Contacts', icon: '📧' },
     { id: 'userinfo', label: 'User Info', icon: '👤' }
@@ -228,6 +230,7 @@ const AdminDashboard = () => {
           )}
 
           {activeTab === 'projects' && <ProjectsManager />}
+          {activeTab === 'experience' && <ExperienceManager />}
           {activeTab === 'certificates' && <CertificatesManager />}
           {activeTab === 'contacts' && <ContactsManager />}
           {activeTab === 'userinfo' && <UserInfoManager />}
