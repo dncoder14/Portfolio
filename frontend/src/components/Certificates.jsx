@@ -116,7 +116,7 @@ const Certificates = () => {
             >
               {/* Certificate Image/Icon */}
               <div className="relative mb-6">
-                <div className="w-full h-32 bg-gradient-to-br from-green-400/20 to-green-600/20 rounded-lg flex items-center justify-center">
+                <div className="w-full h-48 rounded-lg flex items-center justify-center overflow-hidden bg-gray-900">
                   {certificate.imageUrl ? (
                     <img 
                       src={certificate.imageUrl} 

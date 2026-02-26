@@ -143,7 +143,7 @@ const Projects = () => {
                   <img 
                     src={project.imageUrl} 
                     alt={project.title}
-                    className="project-image w-full h-full object-contain"
+                    className="project-image w-full h-full object-cover"
                   />
                 ) : (
                   <div className="project-image w-full h-full bg-gradient-to-br from-green-400/20 to-green-600/20 flex items-center justify-center text-4xl font-bold text-green-400">
