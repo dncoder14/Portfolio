@@ -12,7 +12,8 @@
     "db:studio": "prisma studio",
     "setup:admin": "node scripts/setup-admin.js",
     "seed": "node scripts/seed-data.js",
-    "setup": "npm run db:generate && npm run db:push && npm run setup:admin && npm run seed"
+    "seed:skills": "node scripts/seed-skills.js",
+    "setup": "npm run db:generate && npm run db:push && npm run setup:admin && npm run seed && npm run seed:skills"
   },
   "dependencies": {
     "@prisma/client": "^5.7.1",
