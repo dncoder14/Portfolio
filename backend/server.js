@@ -56,6 +56,24 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
+// Root route
+app.get('/', (req, res) => {
+  res.json({ 
+    message: '🚀 Portfolio Backend API is running!',
+    status: 'active',
+    endpoints: {
+      health: '/api/health',
+      userInfo: '/api/userinfo',
+      projects: '/api/projects',
+      certificates: '/api/certificates',
+      experience: '/api/experience',
+      contact: '/api/contact',
+      skills: '/api/skills',
+      admin: '/api/admin'
+    }
+  });
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
