@@ -33,8 +33,7 @@ const createTransporter = () => {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
     },
-    // Add connection timeout
-    connectionTimeout: 10000, // 10 seconds
+    connectionTimeout: 10000,
     greetingTimeout: 5000,
     socketTimeout: 10000,
   };
@@ -45,6 +44,9 @@ const createTransporter = () => {
   } else {
     config.secure = false;
     config.requireTLS = true;
+    config.tls = {
+      rejectUnauthorized: false
+    };
   }
 
   return nodemailer.createTransport(config);
