@@ -59,7 +59,7 @@ app.get('/api/health', (req, res) => {
 // Root route
 app.get('/', (req, res) => {
   res.json({ 
-    message: '🚀 Portfolio Backend API is running!',
+    message: 'Portfolio Backend API is running!',
     status: 'active',
     endpoints: {
       health: '/api/health',
