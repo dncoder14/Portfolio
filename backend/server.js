@@ -14,17 +14,13 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(helmet());
 
-const allowedOrigins = [
-  process.env.FRONTEND_URL?.replace(/\/$/, ''),
-  'http://localhost:3000',
-  'http://localhost:5173'
-].filter(Boolean);
+const allowedOrigins = process.env.FRONTEND_URL?.replace(/\/$/, '');
 
-console.log('Allowed origins:', allowedOrigins);
+console.log('Allowed origin:', allowedOrigins);
 
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin || origin === allowedOrigins) {
       return callback(null, true);
     }
     console.warn('CORS blocked origin:', origin);
