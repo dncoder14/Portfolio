@@ -81,6 +81,7 @@ process.on('SIGTERM', async () => {
   process.exit(0);
 });
 
+// Start server only in non-production (local development)
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
@@ -88,4 +89,5 @@ if (process.env.NODE_ENV !== 'production') {
   });
 }
 
+// Export for Vercel serverless
 module.exports = app;
